@@ -65,15 +65,14 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
 
   const replaceCard = (cardIndex: number) => {
     const currentPlayer = getCurrentPlayer();
-    if (currentPlayer) {
-      // This will be implemented when we have the drawn card logic
-      // For now, we'll dispatch a placeholder action
+    const drawnCardId = gameState.ui.selectedCard;
+    if (currentPlayer && drawnCardId) {
       dispatch({
         type: 'REPLACE_CARD',
         payload: {
           playerId: currentPlayer.id,
           cardIndex,
-          drawnCardId: '', // Will be set by reducer logic
+          drawnCardId,
         },
       });
     }
@@ -81,12 +80,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
 
   const discardDrawnCard = () => {
     const currentPlayer = getCurrentPlayer();
-    if (currentPlayer) {
+    const drawnCardId = gameState.ui.selectedCard;
+    if (currentPlayer && drawnCardId) {
       dispatch({
         type: 'DISCARD_DRAWN_CARD',
         payload: {
           playerId: currentPlayer.id,
-          cardId: '', // Will be set by reducer logic
+          cardId: drawnCardId,
         },
       });
     }
