@@ -104,7 +104,7 @@ export interface UIState {
   showingPeekCard: string | null; // cardId being peeked at
   animationQueue: Animation[];
   isActionInProgress: boolean;
-  currentModal: ModalType | null;
+  currentModal: string | null; // Will be properly typed as ModalType in Task 1.5
 }
 
 export const ModalType = {

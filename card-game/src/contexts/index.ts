@@ -1,2 +1,4 @@
 // Export React contexts
-// GameContext, GameProvider will be exported from here
+export { GameProvider } from './GameContext';
+export { gameReducer, initialGameState } from './gameReducer';
+export { GameContext } from './context';

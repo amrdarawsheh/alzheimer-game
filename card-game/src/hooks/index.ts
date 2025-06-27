@@ -1,2 +1,3 @@
 // Export custom React hooks
-// useGame, useCardAnimation, etc. will be exported from here
+export { useGame } from './useGame';
+export { default as useGameHook } from './useGame';
