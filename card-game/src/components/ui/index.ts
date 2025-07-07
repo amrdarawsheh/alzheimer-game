@@ -1,2 +1,6 @@
 // Export UI components
-// ActionModal, ScoreModal, buttons, etc. will be exported from here
+export { GameStatus } from '../GameStatus'
+export { GameControls } from '../GameControls'
+export { SpecialAbilityModal } from '../SpecialAbilityModal'
+export { PeekResultModal } from '../PeekResultModal'
+export { ScoreModal } from '../ScoreModal'

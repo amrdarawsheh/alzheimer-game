@@ -1,2 +1,6 @@
 // Export game-specific components
-// GameBoard, PlayerArea, Card, etc. will be exported from here
+export { GameBoard } from '../GameBoard'
+export { PlayerArea } from '../PlayerArea'
+export { PlayingCard } from '../PlayingCard'
+export { DeckArea } from '../DeckArea'
+export { DrawnCard } from '../DrawnCard'

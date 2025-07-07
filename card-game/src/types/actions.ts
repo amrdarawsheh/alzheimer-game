@@ -6,6 +6,7 @@ export type GameAction =
       type: 'START_GAME';
       payload: { playerCount: number; playerNames: string[] };
     }
+  | { type: 'START_PLAYING'; payload: Record<string, never> }
   | { type: 'START_ROUND'; payload: Record<string, never> }
   | { type: 'END_ROUND'; payload: Record<string, never> }
   | { type: 'END_GAME'; payload: { winnerId: string } }
@@ -135,4 +136,16 @@ export interface GameContextType {
   canDrawFromDiscard: () => boolean;
   canCallStop: () => boolean;
   isPlayerTurn: (playerId: string) => boolean;
+
+  // Enhanced game engine functions
+  getGameStatistics: () => unknown;
+  getTurnAnalysis: () => unknown;
+  getPlayerAvailableActions: () => string[];
+  isValidAction: (playerId: string, actionType: string) => boolean;
+
+  // Game flow control functions
+  forceEndTurn: () => void;
+  forceNextRound: () => void;
+  getGameFlowInfo: () => Record<string, unknown>;
+  forceProgressScoring: () => void;
 }

@@ -3,12 +3,34 @@ import type { ReactNode } from 'react';
 import type { GameAction, GameContextType } from '../types';
 import { gameReducer, initialGameState } from './gameReducer';
 import { GameContext } from './context';
+import { 
+  calculateGameStatistics, 
+  analyzeTurn, 
+  getAvailableActions,
+  validateTurnAction 
+} from '../utils/gameEngine';
+// import { createGameFlowManager } from '../utils/gameFlowManager';
 
 // Game Provider component
 export const GameProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [gameState, dispatch] = useReducer(gameReducer, initialGameState);
+  
+  // Temporarily disable game flow manager for testing
+  // const gameFlowManager = useMemo(() => {
+  //   return createGameFlowManager(dispatch, gameState);
+  // }, [dispatch]);
+  
+  // const processFlow = useCallback(() => {
+  //   gameFlowManager.updateGameState(gameState);
+  //   gameFlowManager.processGameFlow();
+  // }, [gameFlowManager, gameState]);
+
+  // useEffect(() => {
+  //   const timer = setTimeout(processFlow, 100);
+  //   return () => clearTimeout(timer);
+  // }, [gameState.round.phase, gameState.round.currentPlayerIndex, gameState.ui.selectedCard, processFlow]);
 
   // Game control functions
   const startGame = (playerCount: number, playerNames: string[]) => {
@@ -39,6 +61,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
         type: 'CALL_STOP',
         payload: { playerId: currentPlayer.id },
       });
+      // Automatically end turn after calling stop
+      setTimeout(() => {
+        dispatch({
+          type: 'END_TURN',
+          payload: { playerId: currentPlayer.id },
+        });
+      }, 500);
     }
   };
 
@@ -75,6 +104,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
           drawnCardId,
         },
       });
+      // Automatically end turn after replacing card
+      setTimeout(() => {
+        dispatch({
+          type: 'END_TURN',
+          payload: { playerId: currentPlayer.id },
+        });
+      }, 500);
     }
   };
 
@@ -89,6 +125,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
           cardId: drawnCardId,
         },
       });
+      // Automatically end turn after discarding
+      setTimeout(() => {
+        dispatch({
+          type: 'END_TURN',
+          payload: { playerId: currentPlayer.id },
+        });
+      }, 500);
     }
   };
 
@@ -173,8 +216,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
 
   // Bot functions
   const processBotTurn = () => {
-    // This will be implemented in Task 1.8 with bot AI
-    console.log('Bot turn processing not implemented yet');
+    // gameFlowManager.processBotTurn();
+    console.log('Bot turn processing temporarily disabled');
   };
 
   // Utility functions
@@ -212,6 +255,50 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
     return currentPlayer?.id === playerId;
   };
 
+  // Enhanced game engine functions
+  const getGameStatistics = () => {
+    return calculateGameStatistics(gameState);
+  };
+
+  const getTurnAnalysis = () => {
+    return analyzeTurn(gameState);
+  };
+
+  const getPlayerAvailableActions = () => {
+    return getAvailableActions(gameState);
+  };
+
+  const isValidAction = (playerId: string, actionType: string) => {
+    return validateTurnAction(gameState, playerId, actionType);
+  };
+
+  // Game flow control functions (temporarily disabled)
+  const forceEndTurn = () => {
+    // gameFlowManager.endTurn();
+    dispatch({ type: 'END_TURN', payload: { playerId: getCurrentPlayer()?.id || '' } });
+  };
+
+  const forceNextRound = () => {
+    // gameFlowManager.nextRound();
+    dispatch({ type: 'START_ROUND', payload: {} });
+  };
+
+  const getGameFlowInfo = () => {
+    // return gameFlowManager.getGameStateInfo();
+    return {
+      phase: gameState.round.phase,
+      currentPlayer: getCurrentPlayer(),
+      turnNumber: gameState.round.turnNumber,
+      availableActions: getAvailableActions(gameState),
+      validationErrors: [],
+    };
+  };
+
+  const forceProgressScoring = () => {
+    // gameFlowManager.forceProgressScoring();
+    dispatch({ type: 'END_ROUND', payload: {} });
+  };
+
   // Create the context value
   const contextValue: GameContextType = {
     gameState,
@@ -240,6 +327,14 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
     canDrawFromDiscard,
     canCallStop,
     isPlayerTurn,
+    getGameStatistics,
+    getTurnAnalysis,
+    getPlayerAvailableActions,
+    isValidAction,
+    forceEndTurn,
+    forceNextRound,
+    getGameFlowInfo,
+    forceProgressScoring,
   };
 
   return (

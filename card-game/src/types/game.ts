@@ -30,6 +30,7 @@ export type Rank = (typeof Rank)[keyof typeof Rank];
 
 export const GamePhase = {
   SETUP: 'setup',
+  CARD_VIEWING: 'card-viewing',
   PLAYING: 'playing',
   SCORING: 'scoring',
   FINISHED: 'finished',

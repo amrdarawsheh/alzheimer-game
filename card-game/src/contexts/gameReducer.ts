@@ -1,104 +1,31 @@
-import type { GameState, GameAction, Player, PlayerCard, Card } from '../types';
-import { GamePhase, PlayerType, Rank } from '../types';
-import { GAME_CONFIG, CARD_VALUES, STANDARD_RANKS, ALL_SUITS } from '../constants';
+import type { GameState, GameAction } from '../types';
+import { GamePhase } from '../types';
+import { GAME_CONFIG } from '../constants';
 
-// Utility functions for the reducer
-const generateCardId = (): string => {
-  return `card-${Math.random().toString(36).substr(2, 9)}`;
-};
+// Import utility functions
+import { 
+  createDeck, 
+  shuffleDeck, 
+  dealInitialCards, 
+  calculatePlayerScore,
+  hasSpecialAbility,
+  drawCard,
+  addToDiscardPile,
+  replacePlayerCard,
+  updateCardKnowledge,
+  swapPlayerCards,
+} from '../utils/deckUtils';
 
-const createDeck = (): Record<string, Card> => {
-  const cards: Record<string, Card> = {};
-  
-  // Create standard cards
-  ALL_SUITS.forEach(suit => {
-    STANDARD_RANKS.forEach(rank => {
-      const id = generateCardId();
-      cards[id] = {
-        id,
-        suit,
-        rank,
-        value: CARD_VALUES[rank],
-        isSpecial: rank === Rank.QUEEN || rank === Rank.JACK,
-      };
-    });
-  });
+import {
+  createPlayers,
+} from '../utils/playerUtils';
 
-  // Create jokers
-  for (let i = 0; i < GAME_CONFIG.JOKER_COUNT; i++) {
-    const id = generateCardId();
-    cards[id] = {
-      id,
-      suit: null,
-      rank: Rank.JOKER,
-      value: CARD_VALUES[Rank.JOKER],
-      isSpecial: false,
-    };
-  }
-
-  return cards;
-};
-
-const shuffleArray = <T>(array: T[]): T[] => {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-};
-
-const createPlayers = (playerCount: number, playerNames: string[]): Player[] => {
-  const players: Player[] = [];
-  
-  for (let i = 0; i < playerCount; i++) {
-    const isHuman = i === 0; // First player is human
-    players.push({
-      id: `player-${i}`,
-      name: playerNames[i] || `${isHuman ? 'Player' : 'Bot'} ${i + 1}`,
-      type: isHuman ? PlayerType.HUMAN : PlayerType.BOT,
-      cards: [],
-      score: 0,
-      isActive: true,
-      roundWins: 0,
-    });
-  }
-  
-  return players;
-};
-
-const dealInitialCards = (
-  players: Player[],
-  cardIds: string[]
-): { updatedPlayers: Player[]; remainingCards: string[] } => {
-  const updatedPlayers = [...players];
-  const remainingCards = [...cardIds];
-  
-  // Deal 4 cards to each player
-  updatedPlayers.forEach(player => {
-    const playerCards: PlayerCard[] = [];
-    
-    for (let i = 0; i < GAME_CONFIG.CARDS_PER_PLAYER; i++) {
-      const cardId = remainingCards.pop()!;
-      playerCards.push({
-        cardId,
-        isRevealed: false,
-        isKnownToPlayer: i < GAME_CONFIG.INITIAL_KNOWN_CARDS, // First 2 cards are known
-      });
-    }
-    
-    player.cards = playerCards;
-  });
-  
-  return { updatedPlayers, remainingCards };
-};
-
-const calculatePlayerScore = (playerCards: PlayerCard[], allCards: Record<string, Card>): number => {
-  return playerCards.reduce((total, playerCard) => {
-    const card = allCards[playerCard.cardId];
-    return total + (card ? card.value : 0);
-  }, 0);
-};
+import {
+  determineRoundWinner,
+  checkMatchWinner,
+  shouldEndRound,
+  getNextPlayerIndex,
+} from '../utils/gameEngine';
 
 // Initial game state
 export const initialGameState: GameState = {
@@ -154,7 +81,7 @@ export const gameReducer = (
       
       // Create deck and shuffle
       const allCards = createDeck();
-      const cardIds = shuffleArray(Object.keys(allCards));
+      const cardIds = shuffleDeck(allCards);
       
       // Create players
       const players = createPlayers(playerCount, playerNames);
@@ -202,10 +129,26 @@ export const gameReducer = (
       };
     }
 
+    case 'START_PLAYING': {
+      return {
+        ...state,
+        round: {
+          ...state.round,
+          phase: GamePhase.PLAYING,
+        },
+        lastAction: {
+          type: action.type,
+          playerId: 'system',
+          details: {},
+          timestamp: Date.now(),
+        },
+      };
+    }
+
     case 'START_ROUND': {
       // Create and shuffle a new deck
       const allCards = createDeck();
-      const cardIds = shuffleArray(Object.keys(allCards));
+      const cardIds = shuffleDeck(allCards);
       
       // Reset players for new round
       const resetPlayers = state.players.map(player => ({
@@ -271,18 +214,14 @@ export const gameReducer = (
       });
       
       // Find the winner (lowest score)
-      const winner = updatedPlayers.reduce((lowest, current) => 
-        current.score < lowest.score ? current : lowest
-      );
+      const winner = determineRoundWinner(updatedPlayers);
       
       // Update round wins
       const updatedRoundWins = { ...state.match.roundWins };
       updatedRoundWins[winner.id] = (updatedRoundWins[winner.id] || 0) + 1;
       
       // Check if someone won the match
-      const matchWinner = Object.entries(updatedRoundWins).find(
-        ([, wins]) => wins >= state.match.roundsToWin
-      )?.[0] || null;
+      const matchWinner = checkMatchWinner(updatedRoundWins, state.match.roundsToWin);
       
       return {
         ...state,
@@ -339,28 +278,37 @@ export const gameReducer = (
     case 'DRAW_FROM_DECK': {
       const { playerId } = action.payload;
       
-      if (state.deck.drawPile.length === 0) {
+      const { drawnCardId, newDrawPile, newDiscardPile } = drawCard(
+        state.deck.drawPile,
+        state.deck.discardPile,
+        'deck'
+      );
+      
+      if (!drawnCardId) {
         return state; // Cannot draw from empty deck
       }
       
-      const drawnCardId = state.deck.drawPile[state.deck.drawPile.length - 1];
-      const newDrawPile = state.deck.drawPile.slice(0, -1);
+      // Check if drawn card has special ability
+      const drawnCard = state.cards[drawnCardId];
+      const hasSpecial = drawnCard && hasSpecialAbility(drawnCard, 'deck');
       
       return {
         ...state,
         deck: {
           ...state.deck,
           drawPile: newDrawPile,
+          discardPile: newDiscardPile,
           isEmpty: newDrawPile.length === 0,
         },
         ui: {
           ...state.ui,
           selectedCard: drawnCardId, // Store drawn card for replacement decision
+          currentModal: hasSpecial ? 'special-ability' : null, // Show special ability modal if needed
         },
         lastAction: {
           type: action.type,
           playerId,
-          details: { drawnCardId },
+          details: { drawnCardId, hasSpecialAbility: hasSpecial },
           timestamp: Date.now(),
         },
       };
@@ -369,17 +317,21 @@ export const gameReducer = (
     case 'DRAW_FROM_DISCARD': {
       const { playerId } = action.payload;
       
-      if (state.deck.discardPile.length === 0) {
+      const { drawnCardId, newDrawPile, newDiscardPile } = drawCard(
+        state.deck.drawPile,
+        state.deck.discardPile,
+        'discard'
+      );
+      
+      if (!drawnCardId) {
         return state; // Cannot draw from empty discard pile
       }
-      
-      const drawnCardId = state.deck.discardPile[state.deck.discardPile.length - 1];
-      const newDiscardPile = state.deck.discardPile.slice(0, -1);
       
       return {
         ...state,
         deck: {
           ...state.deck,
+          drawPile: newDrawPile,
           discardPile: newDiscardPile,
         },
         ui: {
@@ -404,26 +356,23 @@ export const gameReducer = (
       }
       
       const player = state.players[playerIndex];
-      const replacedCardId = player.cards[cardIndex].cardId;
+      const { updatedPlayer, replacedCardId } = replacePlayerCard(
+        player,
+        cardIndex,
+        drawnCardId,
+        state.round.turnNumber
+      );
       
-      // Update player's cards
+      // Update players array
       const updatedPlayers = [...state.players];
-      updatedPlayers[playerIndex] = {
-        ...player,
-        cards: player.cards.map((card, index) => 
-          index === cardIndex 
-            ? { ...card, cardId: drawnCardId, isKnownToPlayer: true }
-            : card
-        ),
-      };
+      updatedPlayers[playerIndex] = updatedPlayer;
       
       // Add replaced card to discard pile
-      const newDiscardPile = [...state.deck.discardPile, replacedCardId];
+      const newDiscardPile = addToDiscardPile(state.deck.discardPile, replacedCardId);
       
       // Check if drawn card has special ability
       const drawnCard = state.cards[drawnCardId];
-      const hasSpecialAbility = drawnCard && drawnCard.isSpecial && 
-        (drawnCard.rank === Rank.QUEEN || drawnCard.rank === Rank.JACK);
+      const hasAbility = hasSpecialAbility(drawnCard, 'deck');
       
       return {
         ...state,
@@ -435,12 +384,12 @@ export const gameReducer = (
         ui: {
           ...state.ui,
           selectedCard: null,
-          currentModal: hasSpecialAbility ? drawnCard.rank : null,
+          currentModal: hasAbility ? drawnCard.rank : null,
         },
         lastAction: {
           type: action.type,
           playerId,
-          details: { cardIndex, drawnCardId, replacedCardId, hasSpecialAbility },
+          details: { cardIndex, drawnCardId, replacedCardId, hasSpecialAbility: hasAbility },
           timestamp: Date.now(),
         },
       };
@@ -455,7 +404,7 @@ export const gameReducer = (
       }
       
       // Add drawn card to discard pile
-      const newDiscardPile = [...state.deck.discardPile, drawnCardId];
+      const newDiscardPile = addToDiscardPile(state.deck.discardPile, drawnCardId);
       
       return {
         ...state,
@@ -478,17 +427,15 @@ export const gameReducer = (
 
     case 'END_TURN': {
       const { playerId } = action.payload;
-      const nextPlayerIndex = (state.round.currentPlayerIndex + 1) % state.players.length;
-      let shouldEndRound = false;
+      const nextPlayerIndex = getNextPlayerIndex(state.round.currentPlayerIndex, state.players.length);
+      let endRound = shouldEndRound(state);
       let newRemainingTurns = state.round.remainingTurns;
       
-      // Check for automatic round end conditions
-      if (state.deck.isEmpty) {
-        shouldEndRound = true;
-      } else if (state.round.stopCalled) {
+      // Update remaining turns if stop was called
+      if (state.round.stopCalled) {
         newRemainingTurns = Math.max(0, state.round.remainingTurns - 1);
         if (newRemainingTurns === 0) {
-          shouldEndRound = true;
+          endRound = true;
         }
       }
       
@@ -508,13 +455,13 @@ export const gameReducer = (
         lastAction: {
           type: action.type,
           playerId,
-          details: { shouldEndRound },
+          details: { shouldEndRound: endRound },
           timestamp: Date.now(),
         },
       };
       
       // If round should end, automatically trigger END_ROUND
-      if (shouldEndRound) {
+      if (endRound) {
         return gameReducer(newState, { type: 'END_ROUND', payload: {} });
       }
       
@@ -542,21 +489,13 @@ export const gameReducer = (
     case 'PEEK_CARD': {
       const { playerId, targetCardId } = action.payload;
       
-      // Find the target card and update player knowledge
-      let updatedPlayers = [...state.players];
-      const currentPlayerIndex = updatedPlayers.findIndex(p => p.id === playerId);
-      
-      if (currentPlayerIndex !== -1) {
-        // Update knowledge for the target card
-        updatedPlayers = updatedPlayers.map(player => ({
-          ...player,
-          cards: player.cards.map(card => 
-            card.cardId === targetCardId 
-              ? { ...card, isKnownToPlayer: player.id === playerId }
-              : card
-          ),
-        }));
-      }
+      // Update player knowledge for the peeked card
+      const updatedPlayers = updateCardKnowledge(
+        state.players,
+        playerId,
+        targetCardId,
+        state.round.turnNumber
+      );
       
       return {
         ...state,
@@ -564,7 +503,7 @@ export const gameReducer = (
         ui: {
           ...state.ui,
           showingPeekCard: targetCardId,
-          currentModal: null,
+          currentModal: 'peek-result',
         },
         lastAction: {
           type: action.type,
@@ -592,24 +531,14 @@ export const gameReducer = (
         return state;
       }
       
-      // Swap the cards
-      const updatedPlayers = [...state.players];
-      const currentPlayerCard = currentPlayer.cards[playerCardIndex];
-      const targetPlayerCard = targetPlayer.cards[targetCardIndex];
-      
-      updatedPlayers[currentPlayerIndex] = {
-        ...currentPlayer,
-        cards: currentPlayer.cards.map((card, index) =>
-          index === playerCardIndex ? { ...targetPlayerCard, isKnownToPlayer: false } : card
-        ),
-      };
-      
-      updatedPlayers[targetPlayerIndex] = {
-        ...targetPlayer,
-        cards: targetPlayer.cards.map((card, index) =>
-          index === targetCardIndex ? { ...currentPlayerCard, isKnownToPlayer: false } : card
-        ),
-      };
+      // Swap the cards using utility function
+      const updatedPlayers = swapPlayerCards(
+        state.players,
+        playerId,
+        playerCardIndex,
+        targetPlayerId,
+        targetCardIndex
+      );
       
       return {
         ...state,
