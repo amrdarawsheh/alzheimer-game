@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import styled from 'styled-components'
 import { useGame } from '../hooks/useGame'
 import type { Card, Player } from '../types'
 
@@ -9,6 +10,490 @@ interface SpecialAbilityModalProps {
   onUse: (params: any) => void
   onSkip: () => void
 }
+
+// Styled Components for Special Ability Modal
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  @keyframes modalSlideIn {
+    0% {
+      opacity: 0;
+      backdrop-filter: blur(0px);
+    }
+    100% {
+      opacity: 1;
+      backdrop-filter: blur(8px);
+    }
+  }
+`
+
+const ModalContainer = styled.div`
+  background: linear-gradient(135deg, #1A1A2E 0%, #16213E 100%);
+  border-radius: 20px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), 0 0 40px rgba(255, 215, 0, 0.2);
+  max-width: 42rem;
+  width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 3px solid rgba(255, 215, 0, 0.4);
+  position: relative;
+  animation: modalContentSlide 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  @keyframes modalContentSlide {
+    0% {
+      opacity: 0;
+      transform: scale(0.9) translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+  
+  @media (max-width: 768px) {
+    width: 98%;
+    border-radius: 16px;
+    border-width: 2px;
+  }
+`
+
+const ModalHeader = styled.div<{ abilityType: 'peek' | 'swap' }>`
+  background: ${props => props.abilityType === 'peek' 
+    ? 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 50%, #6D28D9 100%)'
+    : 'linear-gradient(135deg, #10B981 0%, #059669 50%, #047857 100%)'};
+  color: white;
+  padding: 24px;
+  border-radius: 17px 17px 0 0;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+    pointer-events: none;
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 215, 0, 0.8) 50%, transparent 100%);
+  }
+  
+  @media (max-width: 768px) {
+    padding: 20px;
+    border-radius: 13px 13px 0 0;
+  }
+`
+
+const HeaderContent = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+  z-index: 10;
+`
+
+const HeaderTitle = styled.h2`
+  font-size: 24px;
+  font-weight: bold;
+  font-family: 'Playfair Display', serif;
+  margin: 0 0 8px 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  
+  @media (max-width: 768px) {
+    font-size: 20px;
+  }
+`
+
+const HeaderDescription = styled.p`
+  font-size: 14px;
+  opacity: 0.95;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  
+  @media (max-width: 768px) {
+    font-size: 13px;
+  }
+`
+
+const CloseButton = styled.button`
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: scale(1.1);
+  }
+  
+  &:active {
+    transform: scale(0.95);
+    transition: all 0.1s ease;
+  }
+  
+  @media (max-width: 768px) {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+  }
+`
+
+const ModalContent = styled.div`
+  padding: 32px;
+  color: white;
+  
+  @media (max-width: 768px) {
+    padding: 24px;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 20px;
+  }
+`
+
+const DrawnCardInfo = styled.div`
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 165, 0, 0.1) 100%);
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 32px;
+  backdrop-filter: blur(8px);
+  
+  @media (max-width: 768px) {
+    padding: 16px;
+    margin-bottom: 24px;
+    border-radius: 12px;
+  }
+`
+
+const DrawnCardTitle = styled.h3`
+  font-family: 'Playfair Display', serif;
+  font-weight: bold;
+  font-size: 18px;
+  color: #FFD700;
+  margin: 0 0 8px 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  
+  @media (max-width: 768px) {
+    font-size: 16px;
+  }
+`
+
+const DrawnCardDescription = styled.p`
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  
+  @media (max-width: 768px) {
+    font-size: 13px;
+  }
+`
+
+const SectionContainer = styled.div`
+  margin-bottom: 32px;
+  
+  @media (max-width: 768px) {
+    margin-bottom: 24px;
+  }
+`
+
+const SectionTitle = styled.h3`
+  font-family: 'Playfair Display', serif;
+  font-weight: bold;
+  font-size: 20px;
+  color: white;
+  margin: 0 0 20px 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  
+  @media (max-width: 768px) {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+`
+
+const PlayerSection = styled.div`
+  margin-bottom: 24px;
+  
+  @media (max-width: 768px) {
+    margin-bottom: 20px;
+  }
+`
+
+const PlayerLabel = styled.h4`
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: rgba(255, 215, 0, 0.9);
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  
+  @media (max-width: 768px) {
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+`
+
+const CardsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  
+  @media (max-width: 768px) {
+    gap: 10px;
+  }
+  
+  @media (max-width: 480px) {
+    gap: 8px;
+  }
+`
+
+const CardSlot = styled.div<{ isSelected: boolean }>`
+  aspect-ratio: 3/4;
+  border-radius: 10px;
+  border: 2px solid ${props => props.isSelected ? '#FFD700' : 'rgba(255, 255, 255, 0.3)'};
+  background: ${props => props.isSelected 
+    ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 165, 0, 0.1) 100%)'
+    : 'rgba(255, 255, 255, 0.1)'};
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+    opacity: ${props => props.isSelected ? 1 : 0};
+    transition: opacity 0.3s ease;
+  }
+  
+  &:hover {
+    border-color: ${props => props.isSelected ? '#FFA500' : 'rgba(255, 215, 0, 0.6)'};
+    background: ${props => props.isSelected 
+      ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.3) 0%, rgba(255, 165, 0, 0.2) 100%)'
+      : 'rgba(255, 255, 255, 0.15)'};
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  &:active {
+    transform: scale(1.02) translateY(0);
+    transition: all 0.1s ease;
+  }
+  
+  @media (max-width: 768px) {
+    border-radius: 8px;
+    border-width: 1px;
+  }
+`
+
+const CardSlotContent = styled.div`
+  padding: 8px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  z-index: 10;
+  
+  @media (max-width: 768px) {
+    padding: 6px;
+  }
+`
+
+const CardStatus = styled.div<{ isKnown: boolean }>`
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  color: ${props => props.isKnown ? '#10B981' : 'rgba(255, 255, 255, 0.8)'};
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+  
+  @media (max-width: 768px) {
+    font-size: 11px;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 10px;
+  }
+`
+
+const StepLabel = styled.h4`
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: rgba(255, 215, 0, 0.9);
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  
+  @media (max-width: 768px) {
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+`
+
+const StatusCheck = styled.span`
+  color: #10B981;
+  font-weight: bold;
+`
+
+const OpponentSection = styled.div`
+  margin-bottom: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  
+  @media (max-width: 768px) {
+    padding: 12px;
+    border-radius: 10px;
+  }
+`
+
+const OpponentLabel = styled.h5`
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  
+  @media (max-width: 768px) {
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+`
+
+const ModalFooter = styled.div`
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.5) 100%);
+  padding: 24px 32px;
+  border-radius: 0 0 17px 17px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 2px solid rgba(255, 215, 0, 0.2);
+  
+  @media (max-width: 768px) {
+    padding: 20px 24px;
+    border-radius: 0 0 13px 13px;
+  }
+  
+  @media (max-width: 480px) {
+    flex-direction: column;
+    gap: 12px;
+  }
+`
+
+const SkipButton = styled.button`
+  background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%);
+  color: white;
+  border: 2px solid #374151;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    background: linear-gradient(135deg, #4B5563 0%, #374151 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(107, 114, 128, 0.4);
+  }
+  
+  &:active {
+    transform: translateY(0);
+    transition: all 0.1s ease;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+  
+  @media (max-width: 480px) {
+    width: 100%;
+  }
+`
+
+const UseAbilityButton = styled.button<{ disabled: boolean }>`
+  background: ${props => props.disabled 
+    ? 'linear-gradient(135deg, #9CA3AF 0%, #6B7280 100%)'
+    : 'linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%)'};
+  color: white;
+  border: 2px solid ${props => props.disabled ? '#6B7280' : '#1E40AF'};
+  padding: 12px 32px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: bold;
+  font-family: 'Inter', sans-serif;
+  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: ${props => props.disabled ? 0.6 : 1};
+  
+  ${props => !props.disabled && `
+    &:hover {
+      background: linear-gradient(135deg, #1E40AF 0%, #1E3A8A 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+      border-color: #1E3A8A;
+    }
+    
+    &:active {
+      transform: translateY(0);
+      transition: all 0.1s ease;
+    }
+  `}
+  
+  @media (max-width: 768px) {
+    padding: 10px 24px;
+    font-size: 13px;
+  }
+  
+  @media (max-width: 480px) {
+    width: 100%;
+  }
+`
 
 export const SpecialAbilityModal: React.FC<SpecialAbilityModalProps> = ({
   card,
@@ -85,7 +570,7 @@ export const SpecialAbilityModal: React.FC<SpecialAbilityModalProps> = ({
 
   const renderPlayerCards = (player: Player, isCurrentPlayer: boolean, selectionType: 'peek' | 'player' | 'target') => {
     return (
-      <div className="grid grid-cols-4 gap-2">
+      <CardsGrid>
         {player.cards.map((playerCard, index) => {
           const isSelected = 
             (selectionType === 'peek' && selectedPeekCard === playerCard.cardId) ||
@@ -93,15 +578,9 @@ export const SpecialAbilityModal: React.FC<SpecialAbilityModalProps> = ({
             (selectionType === 'target' && selectedSwapData.targetPlayerId === player.id && selectedSwapData.targetCardIndex === index)
 
           return (
-            <div
+            <CardSlot
               key={index}
-              className={`
-                aspect-[3/4] rounded border-2 cursor-pointer transition-all duration-200
-                ${isSelected 
-                  ? 'border-yellow-400 bg-yellow-100 scale-105' 
-                  : 'border-gray-300 bg-white hover:border-blue-400 hover:scale-105'
-                }
-              `}
+              isSelected={isSelected}
               onClick={() => {
                 if (abilityType === 'peek') {
                   handlePeekSelect(playerCard.cardId)
@@ -114,148 +593,139 @@ export const SpecialAbilityModal: React.FC<SpecialAbilityModalProps> = ({
                 }
               }}
             >
-              <div className="p-1 h-full flex items-center justify-center text-xs text-center">
+              <CardSlotContent>
                 {isCurrentPlayer && playerCard.isKnownToPlayer ? (
-                  <div className="text-green-600">Known</div>
+                  <CardStatus isKnown={true}>Known</CardStatus>
                 ) : (
-                  <div className="text-gray-500">
+                  <CardStatus isKnown={false}>
                     Card {index + 1}
-                  </div>
+                  </CardStatus>
                 )}
-              </div>
-            </div>
+              </CardSlotContent>
+            </CardSlot>
           )
         })}
-      </div>
+      </CardsGrid>
     )
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <ModalOverlay>
+      <ModalContainer>
         
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 rounded-t-lg">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-bold">
-              ✨ Special Ability: {abilityType === 'peek' ? 'Peek' : 'Swap'}
-            </h2>
-            <button
-              onClick={onClose}
-              className="text-white hover:text-gray-200 text-2xl font-bold"
-            >
+        <ModalHeader abilityType={abilityType}>
+          <HeaderContent>
+            <div>
+              <HeaderTitle>
+                ✨ Special Ability: {abilityType === 'peek' ? 'Peek' : 'Swap'}
+              </HeaderTitle>
+              <HeaderDescription>
+                {getAbilityDescription()}
+              </HeaderDescription>
+            </div>
+            <CloseButton onClick={onClose}>
               ×
-            </button>
-          </div>
-          <p className="text-sm opacity-90 mt-1">
-            {getAbilityDescription()}
-          </p>
-        </div>
+            </CloseButton>
+          </HeaderContent>
+        </ModalHeader>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <ModalContent>
           
           {/* Drawn Card Info */}
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <h3 className="font-semibold text-gray-800 mb-2">
-              You drew: {card.rank} of {card.suit || 'none'}
-            </h3>
-            <p className="text-sm text-gray-600">
+          <DrawnCardInfo>
+            <DrawnCardTitle>
+              You drew: {card.rank === 'joker' ? 'joker' : `${card.rank} of ${card.suit}`}
+            </DrawnCardTitle>
+            <DrawnCardDescription>
               This card has a special ability. Choose to use it or skip it.
-            </p>
-          </div>
+            </DrawnCardDescription>
+          </DrawnCardInfo>
 
           {/* Peek Interface */}
           {abilityType === 'peek' && (
-            <div className="space-y-4">
-              <h3 className="font-semibold text-gray-800">Choose a card to peek at:</h3>
+            <SectionContainer>
+              <SectionTitle>Choose a card to peek at:</SectionTitle>
               
               {/* Your Cards */}
               {currentPlayer && (
-                <div>
-                  <h4 className="text-sm font-medium text-gray-600 mb-2">Your Cards:</h4>
+                <PlayerSection>
+                  <PlayerLabel>Your Cards:</PlayerLabel>
                   {renderPlayerCards(currentPlayer, true, 'peek')}
-                </div>
+                </PlayerSection>
               )}
 
               {/* Opponent Cards */}
               {otherPlayers.map(player => (
-                <div key={player.id}>
-                  <h4 className="text-sm font-medium text-gray-600 mb-2">{player.name}'s Cards:</h4>
+                <PlayerSection key={player.id}>
+                  <PlayerLabel>{player.name}'s Cards:</PlayerLabel>
                   {renderPlayerCards(player, false, 'peek')}
-                </div>
+                </PlayerSection>
               ))}
-            </div>
+            </SectionContainer>
           )}
 
           {/* Swap Interface */}
           {abilityType === 'swap' && (
-            <div className="space-y-4">
-              <h3 className="font-semibold text-gray-800">Choose cards to swap:</h3>
+            <SectionContainer>
+              <SectionTitle>Choose cards to swap:</SectionTitle>
               
               {/* Step 1: Select your card */}
               {currentPlayer && (
-                <div>
-                  <h4 className="text-sm font-medium text-gray-600 mb-2">
+                <PlayerSection>
+                  <StepLabel>
                     Step 1: Select one of your cards
                     {selectedSwapData.playerCardIndex !== null && (
-                      <span className="text-green-600 ml-2">✓ Card {selectedSwapData.playerCardIndex + 1} selected</span>
+                      <StatusCheck>✓ Card {selectedSwapData.playerCardIndex + 1} selected</StatusCheck>
                     )}
-                  </h4>
+                  </StepLabel>
                   {renderPlayerCards(currentPlayer, true, 'player')}
-                </div>
+                </PlayerSection>
               )}
 
               {/* Step 2: Select opponent's card */}
-              <div>
-                <h4 className="text-sm font-medium text-gray-600 mb-2">
+              <PlayerSection>
+                <StepLabel>
                   Step 2: Select an opponent's card to swap with
                   {selectedSwapData.targetPlayerId && selectedSwapData.targetCardIndex !== null && (
-                    <span className="text-green-600 ml-2">
+                    <StatusCheck>
                       ✓ {otherPlayers.find(p => p.id === selectedSwapData.targetPlayerId)?.name}'s card {selectedSwapData.targetCardIndex! + 1} selected
-                    </span>
+                    </StatusCheck>
                   )}
-                </h4>
+                </StepLabel>
                 {otherPlayers.map(player => (
-                  <div key={player.id} className="mb-4">
-                    <h5 className="text-xs text-gray-500 mb-1">{player.name}:</h5>
+                  <OpponentSection key={player.id}>
+                    <OpponentLabel>{player.name}:</OpponentLabel>
                     {renderPlayerCards(player, false, 'target')}
-                  </div>
+                  </OpponentSection>
                 ))}
-              </div>
-            </div>
+              </PlayerSection>
+            </SectionContainer>
           )}
 
-        </div>
+        </ModalContent>
 
         {/* Footer */}
-        <div className="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-between">
-          <button
+        <ModalFooter>
+          <SkipButton
             onClick={() => {
               onSkip()
               onClose()
             }}
-            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
           >
             Skip Ability
-          </button>
+          </SkipButton>
           
-          <button
+          <UseAbilityButton
             onClick={handleConfirm}
             disabled={!canConfirm()}
-            className={`
-              px-6 py-2 rounded font-semibold transition-colors
-              ${canConfirm()
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }
-            `}
           >
             Use Ability
-          </button>
-        </div>
+          </UseAbilityButton>
+        </ModalFooter>
 
-      </div>
-    </div>
+      </ModalContainer>
+    </ModalOverlay>
   )
 }

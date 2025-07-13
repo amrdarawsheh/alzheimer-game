@@ -1,6 +1,320 @@
 import React, { useState } from 'react'
+import styled from 'styled-components'
 import { useGame } from '../hooks/useGame'
 import { GamePhase } from '../types'
+
+// Styled Components for Game Controls
+const SetupContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`
+
+const FormGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+`
+
+const Label = styled.label`
+  font-size: 14px;
+  font-weight: 600;
+  color: #1F2937;
+  margin-bottom: 8px;
+`
+
+const Select = styled.select`
+  width: 100%;
+  padding: 12px 16px;
+  border: 3px solid #FFD700;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  background: white;
+  color: #1F2937;
+  transition: all 0.2s ease;
+  
+  &:focus {
+    outline: none;
+    border-color: #FFA500;
+    box-shadow: 0 0 0 3px rgba(255, 165, 0, 0.3);
+  }
+`
+
+const InputContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+`
+
+const Input = styled.input`
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  border: 3px solid #FFD700;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  background: white;
+  color: #1F2937;
+  transition: all 0.2s ease;
+  
+  &:focus {
+    outline: none;
+    border-color: #FFA500;
+    box-shadow: inset 0 0 0 2px rgba(255, 165, 0, 0.3);
+  }
+  
+  &::placeholder {
+    color: #9CA3AF;
+    font-weight: 400;
+  }
+`
+
+const StartGameButton = styled.button`
+  width: 100%;
+  padding: 16px 32px;
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  border: 3px solid #047857;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+  
+  &:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(16, 185, 129, 0.5);
+    border-color: #065F46;
+  }
+  
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+  }
+`
+
+const ControlsContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+`
+
+const ActionButton = styled.button<{ variant: 'discard' | 'stop' | 'dev' }>`
+  padding: 14px 28px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 3px solid;
+  position: relative;
+  z-index: 100;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.5px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  
+  /* Enhanced accessibility */
+  &:focus {
+    outline: none;
+    ring: 3px solid rgba(255, 255, 255, 0.5);
+    ring-offset: 2px;
+  }
+  
+  /* Ripple effect */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+    pointer-events: none;
+  }
+  
+  &:active::before {
+    width: 300px;
+    height: 300px;
+  }
+  
+  ${props => {
+    switch (props.variant) {
+      case 'discard':
+        return `
+          background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+          color: white;
+          border-color: #B91C1C;
+          box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4), 0 3px 8px rgba(0, 0, 0, 0.2);
+          
+          &:hover {
+            background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.6), 0 5px 15px rgba(0, 0, 0, 0.3);
+            border-color: #991B1B;
+          }
+          
+          &:focus {
+            ring-color: rgba(239, 68, 68, 0.7);
+          }
+        `;
+      case 'stop':
+        return `
+          background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+          color: white;
+          border-color: #B45309;
+          box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4), 0 3px 8px rgba(0, 0, 0, 0.2);
+          animation: stopPulse 3s infinite;
+          
+          &:hover {
+            background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.6), 0 5px 15px rgba(0, 0, 0, 0.3);
+            border-color: #92400E;
+            animation: none;
+          }
+          
+          &:focus {
+            ring-color: rgba(245, 158, 11, 0.7);
+          }
+          
+          @keyframes stopPulse {
+            0%, 100% { 
+              box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4), 0 3px 8px rgba(0, 0, 0, 0.2);
+            }
+            50% { 
+              box-shadow: 0 8px 25px rgba(245, 158, 11, 0.6), 0 4px 12px rgba(0, 0, 0, 0.3);
+            }
+          }
+        `;
+      case 'dev':
+        return `
+          background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%);
+          color: white;
+          border-color: #374151;
+          font-size: 14px;
+          padding: 10px 20px;
+          box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3), 0 2px 6px rgba(0, 0, 0, 0.2);
+          opacity: 0.8;
+          
+          &:hover {
+            background: linear-gradient(135deg, #4B5563 0%, #374151 100%);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 6px 18px rgba(107, 114, 128, 0.4), 0 3px 9px rgba(0, 0, 0, 0.3);
+            opacity: 1;
+          }
+          
+          &:focus {
+            ring-color: rgba(107, 114, 128, 0.7);
+          }
+        `;
+    }
+  }}
+  
+  &:active {
+    transform: translateY(-1px) scale(1.01);
+    transition: all 0.1s ease;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 12px 24px;
+    font-size: 15px;
+    border-radius: 12px;
+    
+    ${props => props.variant === 'dev' && `
+      padding: 8px 16px;
+      font-size: 13px;
+    `}
+  }
+  
+  @media (max-width: 480px) {
+    padding: 10px 20px;
+    font-size: 14px;
+    border-radius: 10px;
+    
+    ${props => props.variant === 'dev' && `
+      padding: 6px 12px;
+      font-size: 12px;
+    `}
+  }
+`
+
+const ViewingPanel = styled.div`
+  text-align: center;
+  
+  .panel {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 24px;
+    backdrop-filter: blur(8px);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .title {
+    color: white;
+    font-weight: bold;
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+  
+  .description {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+`
+
+const FinishedPanel = styled.div`
+  text-align: center;
+  
+  .panel {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 32px;
+    backdrop-filter: blur(8px);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 16px;
+  }
+  
+  .title {
+    color: white;
+    font-weight: bold;
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
+  
+  .winner {
+    color: #FEF08A;
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+  
+  .standings {
+    color: white;
+    
+    .standings-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    
+    .player-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+  }
+`
 
 export const GameControls: React.FC = () => {
   const { gameState, actions } = useGame()
@@ -16,32 +330,31 @@ export const GameControls: React.FC = () => {
   // Setup Phase Controls
   if (gameState.round.phase === GamePhase.SETUP) {
     return (
-      <div className="space-y-4">
+      <SetupContainer>
         
         {/* Player Count Selection */}
-        <div>
-          <label className="block text-sm font-medium text-casino-800 mb-2">
+        <FormGroup>
+          <Label>
             Number of Players
-          </label>
-          <select 
+          </Label>
+          <Select 
             value={playerCount}
             onChange={(e) => setPlayerCount(Number(e.target.value))}
-            className="w-full px-3 py-2 border-2 border-casino-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-casino-500 focus:border-casino-500 bg-white"
           >
             <option value={2}>2 Players</option>
             <option value={3}>3 Players</option>
             <option value={4}>4 Players</option>
-          </select>
-        </div>
+          </Select>
+        </FormGroup>
 
         {/* Player Names */}
-        <div>
-          <label className="block text-sm font-medium text-casino-800 mb-2">
+        <FormGroup>
+          <Label>
             Player Names
-          </label>
-          <div className="space-y-2">
+          </Label>
+          <InputContainer>
             {Array.from({ length: playerCount }, (_, i) => (
-              <input
+              <Input
                 key={i}
                 type="text"
                 value={playerNames[i]}
@@ -51,91 +364,88 @@ export const GameControls: React.FC = () => {
                   setPlayerNames(newNames)
                 }}
                 placeholder={i === 0 ? 'Your name' : `Bot ${i}`}
-                className="w-full px-3 py-2 border-2 border-casino-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-casino-500 focus:border-casino-500 bg-white"
               />
             ))}
-          </div>
-        </div>
+          </InputContainer>
+        </FormGroup>
 
         {/* Start Game Button */}
-        <button
+        <StartGameButton
           onClick={() => actions.startGame(playerCount, playerNames.slice(0, playerCount))}
-          className="w-full px-8 py-4 bg-gradient-to-r from-casino-600 to-casino-700 text-white font-bold text-lg rounded-lg hover:from-casino-700 hover:to-casino-800 active:from-casino-800 active:to-casino-900 transition-all duration-200 shadow-card hover:shadow-card-hover border-2 border-casino-800 hover:border-casino-900"
         >
           🎮 Start Game 🎮
-        </button>
+        </StartGameButton>
 
-      </div>
+      </SetupContainer>
     )
   }
 
   // Card Viewing Phase Controls
-  if (gameState.round.phase === 'card-viewing') {
+  if (gameState.round.phase === GamePhase.CARD_VIEWING) {
     return (
-      <div className="text-center space-y-4">
-        <div className="bg-white bg-opacity-20 rounded-lg p-4 backdrop-blur-sm">
-          <h3 className="text-white font-bold text-lg mb-3">Memorize Your Cards!</h3>
-          <p className="text-white text-sm opacity-90 mb-4">
+      <ViewingPanel>
+        <div className="panel">
+          <h3 className="title">Memorize Your Cards!</h3>
+          <p className="description">
             Look at your face-up cards and remember them. They will be hidden once the game starts.
           </p>
-          <button
+          <StartGameButton
             onClick={() => actions.makeMove({ type: 'START_PLAYING', payload: {} })}
-            className="px-8 py-3 bg-gradient-to-r from-casino-600 to-casino-700 text-white font-bold rounded-lg hover:from-casino-700 hover:to-casino-800 active:from-casino-800 active:to-casino-900 transition-all duration-200 shadow-card hover:shadow-card-hover border-2 border-casino-800 hover:border-casino-900"
           >
             🚀 Start Playing
-          </button>
+          </StartGameButton>
         </div>
-      </div>
+      </ViewingPanel>
     )
   }
 
   // Playing Phase Controls
   if (gameState.round.phase === GamePhase.PLAYING) {
     return (
-      <div className="flex flex-wrap gap-3 justify-center">
+      <ControlsContainer>
         
         {/* Discard Button (when card is drawn) */}
         {hasDrawnCard && isHumanTurn && (
-          <button
+          <ActionButton
+            variant="discard"
             onClick={() => actions.discardDrawnCard()}
-            className="px-6 py-3 bg-gradient-to-r from-card-600 to-card-700 text-white font-bold rounded-lg hover:from-card-700 hover:to-card-800 active:from-card-800 active:to-card-900 transition-all duration-200 shadow-card hover:shadow-card-hover border-2 border-card-800 hover:border-card-900"
           >
             🗑️ Discard Card
-          </button>
+          </ActionButton>
         )}
 
         {/* Call Stop Button */}
         {canCallStop && (
-          <button
+          <ActionButton
+            variant="stop"
             onClick={() => actions.callStop()}
-            className="px-6 py-3 bg-gradient-to-r from-gold-600 to-gold-700 text-white font-bold rounded-lg hover:from-gold-700 hover:to-gold-800 active:from-gold-800 active:to-gold-900 transition-all duration-200 shadow-card hover:shadow-card-hover border-2 border-gold-800 hover:border-gold-900"
           >
             ✋ Call Stop
-          </button>
+          </ActionButton>
         )}
 
         {/* Development Controls (only in development) */}
         {import.meta.env.DEV && (
           <>
-            <button
+            <ActionButton
+              variant="dev"
               onClick={() => actions.forceEndTurn()}
-              className="px-4 py-2 bg-felt-600 text-white text-sm rounded hover:bg-felt-700 transition-colors duration-200 border border-felt-700"
             >
               ⏭️ Force End Turn
-            </button>
+            </ActionButton>
             
             {currentPlayer?.type === 'bot' && (
-              <button
+              <ActionButton
+                variant="dev"
                 onClick={() => actions.processBotTurn()}
-                className="px-4 py-2 bg-felt-600 text-white text-sm rounded hover:bg-felt-700 transition-colors duration-200 border border-felt-700"
               >
                 🤖 Process Bot
-              </button>
+              </ActionButton>
             )}
           </>
         )}
 
-      </div>
+      </ControlsContainer>
     )
   }
 
@@ -147,25 +457,25 @@ export const GameControls: React.FC = () => {
   // Finished Phase Controls
   if (gameState.round.phase === GamePhase.FINISHED) {
     return (
-      <div className="text-center space-y-4">
+      <FinishedPanel>
         
         {/* Game Results */}
-        <div className="bg-white bg-opacity-20 rounded-lg p-6 backdrop-blur-sm">
-          <h2 className="text-white font-bold text-2xl mb-4">🎉 Game Complete! 🎉</h2>
+        <div className="panel">
+          <h2 className="title">🎉 Game Complete! 🎉</h2>
           
           {gameState.match.winner && (
-            <div className="text-yellow-300 font-bold text-xl mb-4">
+            <div className="winner">
               {gameState.players.find(p => p.id === gameState.match.winner)?.name} wins the match!
             </div>
           )}
 
           {/* Final Standings */}
-          <div className="text-white">
-            <h4 className="font-bold mb-2">Final Standings:</h4>
+          <div className="standings">
+            <h4 className="standings-title">Final Standings:</h4>
             {gameState.players
               .sort((a, b) => b.roundWins - a.roundWins)
               .map((player, index) => (
-                <div key={player.id} className="flex justify-between items-center text-sm">
+                <div key={player.id} className="player-row">
                   <span>{index + 1}. {player.name}</span>
                   <span>{player.roundWins} round{player.roundWins !== 1 ? 's' : ''}</span>
                 </div>
@@ -175,14 +485,13 @@ export const GameControls: React.FC = () => {
         </div>
 
         {/* New Game Button */}
-        <button
+        <StartGameButton
           onClick={() => window.location.reload()}
-          className="px-8 py-3 bg-gradient-to-r from-casino-600 to-casino-700 text-white font-bold rounded-lg hover:from-casino-700 hover:to-casino-800 active:from-casino-800 active:to-casino-900 transition-all duration-200 shadow-card hover:shadow-card-hover border-2 border-casino-800 hover:border-casino-900"
         >
           🔄 New Game
-        </button>
+        </StartGameButton>
 
-      </div>
+      </FinishedPanel>
     )
   }
 

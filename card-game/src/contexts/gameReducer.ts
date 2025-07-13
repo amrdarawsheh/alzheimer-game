@@ -116,7 +116,7 @@ export const gameReducer = (
         },
         round: {
           ...state.round,
-          phase: GamePhase.PLAYING,
+          phase: GamePhase.CARD_VIEWING,
           currentPlayerIndex: 0,
           turnNumber: 1,
         },
@@ -356,6 +356,12 @@ export const gameReducer = (
       }
       
       const player = state.players[playerIndex];
+      
+      // Prevent replacement if no card is selected or if already in progress
+      if (!drawnCardId || state.ui.isActionInProgress) {
+        return state;
+      }
+      
       const { updatedPlayer, replacedCardId } = replacePlayerCard(
         player,
         cardIndex,
@@ -385,6 +391,7 @@ export const gameReducer = (
           ...state.ui,
           selectedCard: null,
           currentModal: hasAbility ? drawnCard.rank : null,
+          isActionInProgress: true, // Prevent multiple rapid actions
         },
         lastAction: {
           type: action.type,
@@ -451,6 +458,7 @@ export const gameReducer = (
           ...state.ui,
           selectedCard: null,
           showingPeekCard: null,
+          isActionInProgress: false, // Clear action in progress flag
         },
         lastAction: {
           type: action.type,
@@ -497,18 +505,29 @@ export const gameReducer = (
         state.round.turnNumber
       );
       
+      // Automatically discard the drawn special card after using ability
+      const drawnCardId = state.ui.selectedCard;
+      const newDiscardPile = drawnCardId 
+        ? addToDiscardPile(state.deck.discardPile, drawnCardId)
+        : state.deck.discardPile;
+      
       return {
         ...state,
         players: updatedPlayers,
+        deck: {
+          ...state.deck,
+          discardPile: newDiscardPile,
+        },
         ui: {
           ...state.ui,
+          selectedCard: null, // Clear the drawn card
           showingPeekCard: targetCardId,
           currentModal: 'peek-result',
         },
         lastAction: {
           type: action.type,
           playerId,
-          details: { targetCardId },
+          details: { targetCardId, discardedCardId: drawnCardId },
           timestamp: Date.now(),
         },
       };
@@ -540,17 +559,28 @@ export const gameReducer = (
         targetCardIndex
       );
       
+      // Automatically discard the drawn special card after using ability
+      const drawnCardId = state.ui.selectedCard;
+      const newDiscardPile = drawnCardId 
+        ? addToDiscardPile(state.deck.discardPile, drawnCardId)
+        : state.deck.discardPile;
+      
       return {
         ...state,
         players: updatedPlayers,
+        deck: {
+          ...state.deck,
+          discardPile: newDiscardPile,
+        },
         ui: {
           ...state.ui,
+          selectedCard: null, // Clear the drawn card
           currentModal: null,
         },
         lastAction: {
           type: action.type,
           playerId,
-          details: { playerCardIndex, targetPlayerId, targetCardIndex },
+          details: { playerCardIndex, targetPlayerId, targetCardIndex, discardedCardId: drawnCardId },
           timestamp: Date.now(),
         },
       };

@@ -1,4 +1,5 @@
 import React from 'react'
+import styled from 'styled-components'
 import type { Player } from '../types'
 import { PlayingCard } from './PlayingCard'
 
@@ -8,6 +9,211 @@ interface PlayerAreaProps {
   showAsOpponent: boolean
 }
 
+// Styled Components for Enhanced Player Area
+const PlayerContainer = styled.div<{ isCurrentPlayer: boolean; showAsOpponent: boolean }>`
+  background: ${props => props.isCurrentPlayer 
+    ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 165, 0, 0.1) 100%)' 
+    : 'rgba(255, 255, 255, 0.08)'};
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: ${props => props.showAsOpponent ? '16px' : '20px'};
+  border: 2px solid ${props => props.isCurrentPlayer ? '#FFD700' : 'rgba(255, 255, 255, 0.2)'};
+  box-shadow: ${props => props.isCurrentPlayer 
+    ? '0 8px 32px rgba(255, 215, 0, 0.3), 0 0 20px rgba(255, 215, 0, 0.2)' 
+    : '0 4px 16px rgba(0, 0, 0, 0.2)'};
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: ${props => props.isCurrentPlayer 
+      ? 'linear-gradient(90deg, #FFD700 0%, #FFA500 50%, #FFD700 100%)'
+      : 'transparent'};
+    animation: ${props => props.isCurrentPlayer ? 'shimmer 2s infinite' : 'none'};
+  }
+  
+  @keyframes shimmer {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+  }
+  
+  @media (max-width: 768px) {
+    padding: ${props => props.showAsOpponent ? '12px' : '16px'};
+    border-radius: 12px;
+  }
+`
+
+const PlayerHeader = styled.div<{ showAsOpponent: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: ${props => props.showAsOpponent ? '12px' : '16px'};
+  gap: 12px;
+  
+  @media (max-width: 768px) {
+    margin-bottom: 12px;
+    gap: 8px;
+  }
+`
+
+const PlayerInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+`
+
+const PlayerName = styled.h3<{ showAsOpponent: boolean }>`
+  font-family: 'Playfair Display', serif;
+  font-weight: bold;
+  color: white;
+  font-size: ${props => props.showAsOpponent ? '16px' : '18px'};
+  margin: 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  
+  @media (max-width: 768px) {
+    font-size: ${props => props.showAsOpponent ? '14px' : '16px'};
+  }
+`
+
+const Badge = styled.span<{ variant: 'bot' | 'turn' }>`
+  font-size: 10px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  border: 1px solid;
+  
+  ${props => props.variant === 'bot' && `
+    background: linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%);
+    color: white;
+    border-color: #1E40AF;
+  `}
+  
+  ${props => props.variant === 'turn' && `
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: #000;
+    border-color: #FF8C00;
+    animation: turnPulse 2s infinite;
+  `}
+  
+  @keyframes turnPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.9; }
+  }
+  
+  @media (max-width: 768px) {
+    font-size: 9px;
+    padding: 3px 6px;
+  }
+`
+
+const PlayerStats = styled.div<{ showAsOpponent: boolean }>`
+  text-align: right;
+  color: white;
+  min-width: 0;
+  
+  .score {
+    font-size: ${props => props.showAsOpponent ? '13px' : '14px'};
+    margin-bottom: 2px;
+    font-family: 'JetBrains Mono', monospace;
+    
+    .label {
+      opacity: 0.8;
+      margin-right: 4px;
+    }
+    
+    .value {
+      font-weight: bold;
+      color: #FFD700;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+    }
+  }
+  
+  .wins {
+    font-size: ${props => props.showAsOpponent ? '11px' : '12px'};
+    opacity: 0.7;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  @media (max-width: 768px) {
+    .score {
+      font-size: ${props => props.showAsOpponent ? '12px' : '13px'};
+    }
+    
+    .wins {
+      font-size: ${props => props.showAsOpponent ? '10px' : '11px'};
+    }
+  }
+`
+
+const CardsContainer = styled.div<{ showAsOpponent: boolean }>`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: ${props => props.showAsOpponent ? '8px' : '12px'};
+  transition: all 0.3s ease;
+  
+  @media (max-width: 768px) {
+    gap: ${props => props.showAsOpponent ? '6px' : '8px'};
+  }
+  
+  @media (max-width: 480px) {
+    gap: ${props => props.showAsOpponent ? '4px' : '6px'};
+  }
+`
+
+const BotStatus = styled.div`
+  margin-top: 12px;
+  text-align: center;
+  
+  .thinking {
+    background: linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%);
+    color: white;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 2px solid #1E40AF;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    animation: thinkingPulse 1.5s infinite;
+  }
+  
+  .thinking::before {
+    content: '🤖';
+    font-size: 14px;
+  }
+  
+  @keyframes thinkingPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.02); }
+  }
+  
+  @media (max-width: 768px) {
+    margin-top: 8px;
+    
+    .thinking {
+      font-size: 11px;
+      padding: 6px 12px;
+    }
+  }
+`
+
 export const PlayerArea: React.FC<PlayerAreaProps> = ({ 
   player, 
   isCurrentPlayer, 
@@ -16,52 +222,36 @@ export const PlayerArea: React.FC<PlayerAreaProps> = ({
   const playerScore = player.score > 0 ? player.score : null
 
   return (
-    <div className={`
-      bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-4 border-2 transition-all duration-300
-      ${isCurrentPlayer 
-        ? 'border-yellow-400 bg-opacity-20 shadow-lg' 
-        : 'border-white border-opacity-30'
-      }
-    `}>
+    <PlayerContainer isCurrentPlayer={isCurrentPlayer} showAsOpponent={showAsOpponent}>
       
       {/* Player Header */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <h3 className="font-bold text-white text-lg">{player.name}</h3>
+      <PlayerHeader showAsOpponent={showAsOpponent}>
+        <PlayerInfo>
+          <PlayerName showAsOpponent={showAsOpponent}>{player.name}</PlayerName>
           {player.type === 'bot' && (
-            <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
-              BOT
-            </span>
+            <Badge variant="bot">BOT</Badge>
           )}
           {isCurrentPlayer && (
-            <span className="bg-yellow-500 text-black text-xs px-2 py-1 rounded-full font-bold">
-              TURN
-            </span>
+            <Badge variant="turn">TURN</Badge>
           )}
-        </div>
+        </PlayerInfo>
         
         {/* Player Stats */}
-        <div className="text-right text-white">
+        <PlayerStats showAsOpponent={showAsOpponent}>
           {playerScore !== null && (
-            <div className="text-sm">
-              <span className="opacity-80">Score: </span>
-              <span className="font-bold">{playerScore}</span>
+            <div className="score">
+              <span className="label">Score:</span>
+              <span className="value">{playerScore}</span>
             </div>
           )}
-          <div className="text-xs opacity-60">
+          <div className="wins">
             Round wins: {player.roundWins}
           </div>
-        </div>
-      </div>
+        </PlayerStats>
+      </PlayerHeader>
 
       {/* Player Cards */}
-      <div className={`
-        grid gap-2 transition-all duration-300
-        ${showAsOpponent 
-          ? 'grid-cols-4' 
-          : 'grid-cols-4 md:grid-cols-4'
-        }
-      `}>
+      <CardsContainer showAsOpponent={showAsOpponent}>
         {player.cards.map((playerCard, index) => (
           <PlayingCard
             key={index}
@@ -73,17 +263,17 @@ export const PlayerArea: React.FC<PlayerAreaProps> = ({
             isHumanPlayer={player.type === 'human'}
           />
         ))}
-      </div>
+      </CardsContainer>
 
-      {/* Player Status */}
+      {/* Bot Status */}
       {isCurrentPlayer && player.type === 'bot' && (
-        <div className="mt-3 text-center">
-          <div className="bg-blue-500 bg-opacity-80 rounded px-3 py-1 text-white text-sm">
+        <BotStatus>
+          <div className="thinking">
             Bot is thinking...
           </div>
-        </div>
+        </BotStatus>
       )}
 
-    </div>
+    </PlayerContainer>
   )
 }

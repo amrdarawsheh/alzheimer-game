@@ -1,6 +1,7 @@
-import React, { useReducer } from 'react';
+import React, { useReducer, useMemo, useCallback, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { GameAction, GameContextType } from '../types';
+import { GamePhase } from '../types';
 import { gameReducer, initialGameState } from './gameReducer';
 import { GameContext } from './context';
 import { 
@@ -9,7 +10,7 @@ import {
   getAvailableActions,
   validateTurnAction 
 } from '../utils/gameEngine';
-// import { createGameFlowManager } from '../utils/gameFlowManager';
+import { createGameFlowManager } from '../utils/gameFlowManager';
 
 // Game Provider component
 export const GameProvider: React.FC<{ children: ReactNode }> = ({
@@ -17,20 +18,33 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [gameState, dispatch] = useReducer(gameReducer, initialGameState);
   
-  // Temporarily disable game flow manager for testing
-  // const gameFlowManager = useMemo(() => {
-  //   return createGameFlowManager(dispatch, gameState);
-  // }, [dispatch]);
+  // Game flow manager for bot automation
+  const gameFlowManager = useMemo(() => {
+    try {
+      return createGameFlowManager(dispatch, gameState);
+    } catch (error) {
+      console.error('Error creating GameFlowManager:', error);
+      return null;
+    }
+  }, [dispatch]);
   
-  // const processFlow = useCallback(() => {
-  //   gameFlowManager.updateGameState(gameState);
-  //   gameFlowManager.processGameFlow();
-  // }, [gameFlowManager, gameState]);
+  const processFlow = useCallback(() => {
+    if (gameFlowManager) {
+      try {
+        gameFlowManager.updateGameState(gameState);
+        gameFlowManager.processGameFlow();
+      } catch (error) {
+        console.error('Error processing game flow:', error);
+      }
+    }
+  }, [gameFlowManager, gameState]);
 
-  // useEffect(() => {
-  //   const timer = setTimeout(processFlow, 100);
-  //   return () => clearTimeout(timer);
-  // }, [gameState.round.phase, gameState.round.currentPlayerIndex, gameState.ui.selectedCard, processFlow]);
+  useEffect(() => {
+    if (gameFlowManager) {
+      const timer = setTimeout(processFlow, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [gameState.round.phase, gameState.round.currentPlayerIndex, gameState.ui.selectedCard, processFlow]);
 
   // Game control functions
   const startGame = (playerCount: number, playerNames: string[]) => {
@@ -216,8 +230,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
 
   // Bot functions
   const processBotTurn = () => {
-    // gameFlowManager.processBotTurn();
-    console.log('Bot turn processing temporarily disabled');
+    // if (gameFlowManager) {
+    //   gameFlowManager.processBotTurn();
+    // } else {
+      console.log('Bot automation temporarily disabled - GameFlowManager initialization issue');
+    // }
   };
 
   // Utility functions
@@ -234,11 +251,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const canDrawFromDeck = () => {
-    return gameState.deck.drawPile.length > 0;
+    return gameState.deck.drawPile.length > 0 && gameState.round.phase === GamePhase.PLAYING;
   };
 
   const canDrawFromDiscard = () => {
-    return gameState.deck.discardPile.length > 0;
+    return gameState.deck.discardPile.length > 0 && gameState.round.phase === GamePhase.PLAYING;
   };
 
   const canCallStop = () => {
@@ -246,7 +263,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
     return (
       currentPlayer &&
       !gameState.round.stopCalled &&
-      gameState.round.phase === 'playing'
+      gameState.round.phase === GamePhase.PLAYING
     );
   };
 

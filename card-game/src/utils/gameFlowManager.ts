@@ -6,7 +6,7 @@ import {
   shouldEndRound, 
   getAvailableActions
 } from './gameEngine';
-import { EasyBot } from './playerUtils';
+import { EasyBot, addBotThinkingDelay } from './playerUtils';
 
 /**
  * Manages automatic game flow and state transitions
@@ -58,9 +58,8 @@ export class GameFlowManager {
    * Handles card viewing phase logic
    */
   private handleCardViewingPhase(): void {
-    // Automatically transition to playing phase after card viewing
-    // This allows players to see their initial 2 cards before the game starts
-    this.dispatch({ type: 'START_PLAYING', payload: {} });
+    // Stay in card viewing phase - let user click "Ready to Play" button
+    // The START_PLAYING action will be dispatched when user clicks the button
   }
 
   /**
@@ -76,9 +75,9 @@ export class GameFlowManager {
     // Process bot turns if current player is a bot
     const currentPlayer = this.getCurrentPlayer();
     if (currentPlayer && currentPlayer.type === PlayerType.BOT) {
-      setTimeout(() => {
+      addBotThinkingDelay().then(() => {
         this.processBotTurn();
-      }, 1000); // Add thinking delay
+      });
     }
   }
 

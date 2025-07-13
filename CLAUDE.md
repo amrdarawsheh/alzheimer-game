@@ -4,21 +4,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Setup Commands
 
-This is a React card game project that hasn't been initialized yet. To start development:
+This is a React card game project with complete foundation and UI implemented. To work with the project:
 
 ```bash
-# Initial project setup (Task 1.1)
-npm create vite@latest card-game -- --template react-ts
+# Navigate to project directory
 cd card-game
+
+# Install dependencies (already configured)
 npm install
-npm install -D tailwindcss postcss autoprefixer
-npx tailwindcss init -p
 
 # Development workflow
-npm run dev          # Start development server
+npm run dev          # Start development server (http://localhost:5173/)
 npm run build        # Production build
-npm run lint         # Code quality check (configure ESLint first)
+npm test             # Run comprehensive test suite (125+ tests)
+npm run lint         # Code quality check
 ```
+
+## Server Management Commands
+- Use ./run.sh to run the server and ./stop.sh to stop it
 
 ## Architecture Overview
 
@@ -28,7 +31,10 @@ A competitive memory-based card game where 2-4 players aim for the lowest score.
 ### Technology Stack
 - **Frontend**: React 18 + TypeScript + Tailwind CSS + Vite
 - **State Management**: React Context + useReducer pattern
-- **Target**: Web-first, landscape orientation optimized
+- **Testing**: Vitest + React Testing Library (125+ tests)
+- **Typography**: Playfair Display (casino elegance) + Inter (body) + JetBrains Mono (cards)
+- **Styling**: Casino theme with professional color palette and felt table design
+- **Target**: Web-first, landscape orientation optimized, mobile responsive
 
 ### Core Architecture
 
@@ -56,19 +62,34 @@ App
 └── GameControls - stop button, turn indicator
 ```
 
-**Folder Structure (create this):**
+**Folder Structure (implemented):**
 ```
 src/
-├── components/
-│   ├── game/        # GameBoard, PlayerArea, Card
-│   ├── ui/          # ActionModal, ScoreModal, buttons
-│   └── common/      # reusable components
-├── contexts/        # GameContext, GameProvider
-├── hooks/           # useGame, useCardAnimation
-├── utils/           # gameEngine, deckUtils, botAI
-├── types/           # Card, Player, GameState interfaces
-├── constants/       # game rules, scoring values
-└── assets/          # card graphics, images
+├── components/           # React components
+│   ├── GameBoard.tsx    # Main game board with casino theme
+│   ├── PlayingCard.tsx  # Professional card component with authentic design
+│   ├── PlayerArea.tsx   # Player card areas
+│   ├── DeckArea.tsx     # Deck and discard pile
+│   ├── GameControls.tsx # Action buttons
+│   ├── GameStatus.tsx   # Game state display
+│   └── [modals...]      # Special ability and score modals
+├── contexts/            # React Context providers
+│   └── GameContext.tsx  # Complete game state management
+├── hooks/               # Custom React hooks
+│   └── useGame.tsx      # Main game hook
+├── utils/               # Game logic utilities
+│   ├── gameEngine.ts    # Core game rules and validation
+│   ├── deckUtils.ts     # 54-card deck management
+│   ├── playerUtils.ts   # Player actions and bot AI
+│   └── gameFlowManager.ts # Turn progression and automation
+├── types/               # TypeScript interfaces
+│   └── index.ts         # Complete game type definitions
+├── constants/           # Game configuration
+├── tests/               # Comprehensive test suite
+│   ├── ui/             # UI component tests (Sprint 2)
+│   ├── __tests__/      # Core game logic tests
+│   └── [categories]/   # Organized by test type
+└── assets/             # Static assets
 ```
 
 ### Key Game Logic
@@ -90,13 +111,13 @@ src/
 4. Scoring: Lowest total wins round
 5. Match: First to 3 round wins
 
-## Current Sprint: Sprint 1 (Week 1) - Foundation
+## Current Status: Sprint 2 (Week 2) - UI/UX Implementation
 
-**Goal**: Project setup and core architecture  
-**Status**: Not started - ready to begin  
+**Goal**: Transform functional prototype into professional casino-themed interface  
+**Status**: IN PROGRESS - 5/15 microtasks completed  
 **Duration**: 7 days, 12-15 hours  
 
-### Current Tasks (Sprint 1):
+### Sprint 1 COMPLETED ✅ (Week 1) - Foundation
 - [x] **Task 1.1**: Initialize React Project (2 hours) - **COMPLETED**
 - [x] **Task 1.2**: Project Structure & Development Tools (2 hours) - **COMPLETED**
 - [x] **Task 1.3**: TypeScript Interfaces & Types (3 hours) - **COMPLETED**
@@ -106,34 +127,56 @@ src/
 - [x] **Task 1.7**: Game Engine Core Logic (4 hours) - **COMPLETED**
 - [x] **Task 1.8**: Game Flow Integration (2 hours) - **COMPLETED**
 
-**🎉 SPRINT 1 COMPLETE! 🎉**
+**🎉 SPRINT 1 COMPLETE! 🎉** - All 125+ tests passing, solid foundation achieved
 
-### Sprint 1 Acceptance Criteria:
-- [x] React project with Vite + TypeScript + Tailwind
-- [x] Complete folder structure matching architecture  
-- [x] All TypeScript interfaces defined
-- [x] Game context with useReducer working
-- [x] Core game engine utilities implemented
-- [x] Basic game flow functional
+### Sprint 2 CURRENT PROGRESS ⏳ (Week 2) - UI/UX
+**COMPLETED MICROTASKS:**
+- [x] **2.1**: Configure Casino Color Palette (45min) - **COMPLETED** ✅
+- [x] **2.2**: Create Felt Table Background (30min) - **COMPLETED** ✅
+- [x] **2.3**: Enhance Typography System (30min) - **COMPLETED** ✅
+- [x] **2.4**: Design Card Back Pattern (1hr) - **COMPLETED** ✅
+- [x] **2.5**: Implement Card Face Design (1.5hr) - **COMPLETED** ✅
 
-**🏆 ALL SPRINT 1 OBJECTIVES ACHIEVED! 🏆**
+**NEXT MICROTASKS:**
+- [ ] **2.6**: Add Card Interaction States (45min) - PENDING
+- [ ] **2.7**: Redesign Player Areas (1.5hr) - PENDING
+- [ ] **2.8**: Style Central Game Area (1hr) - PENDING
+- [ ] **2.9**: Design Action Button System (1hr) - PENDING
+- [ ] **2.10**: Implement Game Status Display (45min) - PENDING
+- [ ] **2.11**: Design Special Ability Modals (1.5hr) - PENDING
+- [ ] **2.12**: Create Round End Score Modal (1hr) - PENDING
+- [ ] **2.13**: Implement Mobile Layout (1.5hr) - PENDING
+- [ ] **2.14**: Add Basic Animations (1hr) - PENDING
+- [ ] **2.15**: Final Polish & Testing (1hr) - PENDING
+
+### Sprint 2 Achievements So Far:
+- ✅ **Professional Casino Theme**: Rich green felt table, gold accents, card red colors
+- ✅ **Authentic Playing Cards**: No more "CARD" text placeholders - real card faces with suit symbols
+- ✅ **Typography Excellence**: Playfair Display for elegance, proper font hierarchy
+- ✅ **Card Back Design**: Professional card backs with ornate diamond patterns
+- ✅ **Comprehensive Testing**: 46 new UI tests, all passing
+- ✅ **Visual Transformation**: From basic prototype to casino-quality interface
 
 ## Implementation Phases
 
-### Sprint 2 (Week 2): Game Logic
-- Player actions (draw, replace, special abilities)
-- Round management (stop mechanism, scoring)
-- Memory/knowledge tracking system
+### Sprint 2 (Week 2): UI/UX Implementation ⏳ CURRENT
+**5/15 microtasks completed** - Major visual transformation achieved
+- ✅ Casino color palette and felt table background  
+- ✅ Professional typography system
+- ✅ Authentic playing card design (faces and backs)
+- 🔄 Continue with buttons, modals, mobile optimization
 
-### Sprint 3 (Week 3): User Interface
-- Responsive game board layout
-- Card components with graphics integration
-- Player areas and action buttons
+### Sprint 3 (Week 3): Enhanced Features & Polish
+- Action button redesign and interactions
+- Special ability modal interfaces  
+- Mobile responsiveness and animations
+- Advanced game controls and status displays
 
-### Sprint 4 (Week 4): Polish
-- Easy bot AI (random valid moves)
-- Animations and visual feedback
-- Testing and bug fixes
+### Sprint 4 (Week 4): Advanced Features & Deployment
+- Enhanced bot AI (multiple difficulty levels)
+- Performance optimization and accessibility
+- Final testing and quality assurance  
+- Production deployment preparation
 
 ## Critical Design Decisions
 
@@ -143,15 +186,33 @@ src/
 
 **Bot Integration**: Bots make moves through same action system as humans, with realistic delays for UX.
 
-**Responsive Design**: Landscape-first with player at bottom, opponents positioned around screen. Mobile support through smaller card sizes.
+**Responsive Design**: Landscape-first with player at bottom, opponents positioned around screen. Mobile support with responsive card sizes and touch-friendly interactions.
 
 **Special Abilities**: Complex interaction system - peek allows viewing any card, swap exchanges cards between players. Only activate from deck draws.
 
+**Casino Theme**: Professional appearance with green felt table, gold accents, authentic playing card design, and elegant typography using Playfair Display for headers.
+
 ## Development Notes
 
-- Follow the exact task order from milestone1_sprint_planning.md
+### Current Development Guidelines (Sprint 2)
+- Follow sprint2_microtasks.md for UI implementation order
+- All new UI components must include comprehensive tests
+- Maintain casino theme consistency across all components
+- Use established color palette: casino-green, card-red, gold accents
+- Typography: font-casino (Playfair), font-body (Inter), font-mono (JetBrains)
+- Test UI components with React Testing Library + Vitest
+
+### Code Quality Standards
 - All code must be TypeScript with proper interfaces (no 'any' types)
+- Maintain 100% test coverage for new UI components (46 tests added)
+- Follow existing architecture patterns (Context + useReducer)
 - Reference game_design_document.md for rule clarifications
 - Use technical_architecture_document.md for detailed state structure
-- UI implementation should match ui_ux_wireframes.md specifications
-- Test thoroughly - game state bugs are difficult to debug later
+- UI implementation should enhance ui_ux_wireframes.md specifications
+
+### Testing Strategy
+- UI tests in src/tests/ui/ (ColorSystem, Typography, CardBack, CardFace)
+- Core game logic tests in src/__tests__/ (125+ existing tests)
+- Integration tests for complete game flow
+- Performance tests for animations and interactions
+- All tests must pass before proceeding to next microtask

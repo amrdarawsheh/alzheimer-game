@@ -97,8 +97,8 @@ export const UI_CONFIG = {
 // Bot behavior constants
 export const BOT_CONFIG = {
   THINKING_DELAY: {
-    min: 1000, // Minimum thinking time (ms)
-    max: 3000, // Maximum thinking time (ms)
+    min: 5000, // Minimum thinking time (ms)
+    max: 5000, // Maximum thinking time (ms)
   },
   DIFFICULTY: {
     easy: {
