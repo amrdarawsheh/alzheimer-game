@@ -63,6 +63,8 @@ export const createMockGameState = (): GameState => {
       animationQueue: [],
       isActionInProgress: false,
       currentModal: null,
+      isBotThinking: false,
+      botThinkingStartTime: null,
     },
   };
 };

@@ -309,41 +309,6 @@ const SpecialIndicator = styled.div`
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 `
 
-const PointBadge = styled.div`
-  position: absolute;
-  top: 3px;
-  right: 3px;
-  font-size: 10px;
-  font-weight: bold;
-  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-  color: white;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #FF8C00;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  z-index: 10;
-  
-  @media (max-width: 768px) {
-    width: 18px;
-    height: 18px;
-    font-size: 10px;
-    top: 2px;
-    right: 2px;
-    border-width: 1px;
-  }
-  
-  @media (max-width: 480px) {
-    width: 14px;
-    height: 14px;
-    font-size: 8px;
-    top: 1px;
-    right: 1px;
-  }
-`
 
 const DeckProgressBar = styled.div<{ percentage: number }>`
   position: absolute;
@@ -557,7 +522,7 @@ export const DeckArea: React.FC = () => {
           
           {gameState.deck.discardPile.length > 0 && topDiscardCard ? (
             /* Top Discard Card */
-            <DiscardContent color={getCardColor(topDiscardCard.suit)}>
+            <DiscardContent color={getCardColor(topDiscardCard.suit || 'spades')}>
               
               {/* Top Left Corner */}
               <div style={{ 
@@ -575,7 +540,7 @@ export const DeckArea: React.FC = () => {
 
               {/* Center */}
               <div className="center" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-                {topDiscardCard.rank === 'joker' ? '🃏' : getSuitSymbol(topDiscardCard.suit)}
+                {topDiscardCard.rank === 'joker' ? '🃏' : getSuitSymbol(topDiscardCard.suit || 'spades')}
               </div>
 
               {/* Bottom Corner - positioned absolutely */}

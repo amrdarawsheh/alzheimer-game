@@ -148,13 +148,7 @@ const MemoryEntry = styled.div`
     }
     
     .card-value {
-      color: ${props => (value: number) => {
-        if (value <= 0) return '#10B981';
-        if (value <= 3) return '#34D399';
-        if (value <= 6) return '#F59E0B';
-        if (value <= 9) return '#FB923C';
-        return '#EF4444';
-      }};
+      color: #10B981;
       font-weight: bold;
     }
   }
@@ -265,7 +259,7 @@ export const MemoryTimeline: React.FC<MemoryTimelineProps> = ({ isVisible, onTog
       return {
         position: index + 1,
         card,
-        turn: playerCard.turnSeen || 1, // Fallback to turn 1 if not tracked
+        turn: 1, // Fallback to turn 1 if not tracked
         isCurrently: !playerCard.isRevealed
       }
     })
@@ -307,7 +301,7 @@ export const MemoryTimeline: React.FC<MemoryTimelineProps> = ({ isVisible, onTog
               <div className="text">No cards seen yet.<br />Start viewing your cards to build memory!</div>
             </EmptyState>
           ) : (
-            memoryEntries.map((entry, index) => (
+            memoryEntries.map((entry) => (
               <MemoryEntry key={`${entry?.position}-${entry?.turn}`}>
                 <div className="entry-header">
                   <span className="position">Pos {entry?.position}</span>

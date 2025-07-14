@@ -209,101 +209,11 @@ const CardTitle = styled.div`
   }
 `
 
-const CardDetails = styled.div`
-  font-size: 14px;
-  opacity: 0.9;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-  
-  @media (max-width: 768px) {
-    font-size: 12px;
-  }
-  
-  @media (max-width: 480px) {
-    font-size: 10px;
-  }
-`
-
-const SpecialCardText = styled.div`
-  color: #FEF08A;
-  font-size: 14px;
-  font-weight: bold;
-  margin-top: 8px;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-  
-  @media (max-width: 768px) {
-    font-size: 12px;
-    margin-top: 6px;
-  }
-  
-  @media (max-width: 480px) {
-    font-size: 10px;
-    margin-top: 4px;
-  }
-`
-
-const ActionInstructions = styled.div`
-  margin-top: 16px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 12px;
-  padding: 16px;
-  backdrop-filter: blur(8px);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  z-index: 5;
-  pointer-events: none;
-  
-  @media (max-width: 768px) {
-    margin-top: 12px;
-    padding: 12px;
-    border-radius: 8px;
-    border-width: 1px;
-  }
-  
-  @media (max-width: 480px) {
-    margin-top: 8px;
-    padding: 8px;
-    border-radius: 6px;
-  }
-`
-
-const InstructionTitle = styled.div`
-  color: white;
-  font-weight: bold;
-  margin-bottom: 8px;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-  
-  @media (max-width: 768px) {
-    margin-bottom: 6px;
-  }
-  
-  @media (max-width: 480px) {
-    margin-bottom: 4px;
-  }
-`
-
-const InstructionText = styled.div`
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 12px;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-  
-  @media (max-width: 768px) {
-    font-size: 11px;
-  }
-  
-  @media (max-width: 480px) {
-    font-size: 10px;
-  }
-`
 
 export const DrawnCard: React.FC = () => {
   const { gameState, actions } = useGame()
   const drawnCardId = gameState.ui.selectedCard
   const drawnCard = drawnCardId ? actions.getCardById(drawnCardId) : null
-  const currentPlayer = actions.getCurrentPlayer()
-  const isHumanTurn = currentPlayer?.type === 'human'
 
   if (!drawnCard) {
     return null

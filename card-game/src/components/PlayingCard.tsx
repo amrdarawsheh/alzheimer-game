@@ -516,49 +516,6 @@ const SpecialIndicator = styled.div`
   }
 `
 
-const MemoryIndicator = styled.div`
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  width: 14px;
-  height: 14px;
-  background: linear-gradient(135deg, #34D399 0%, #10B981 100%);
-  border-radius: 50%;
-  border: 1px solid white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 8px;
-  color: white;
-  
-  &::after {
-    content: '👁';
-    font-size: 10px;
-  }
-  
-  @media (max-width: 768px) {
-    width: 12px;
-    height: 12px;
-    top: 3px;
-    left: 3px;
-    
-    &::after {
-      font-size: 8px;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    width: 10px;
-    height: 10px;
-    top: 2px;
-    left: 2px;
-    
-    &::after {
-      font-size: 6px;
-    }
-  }
-`
 
 const CardPositionIndicator = styled.div<{ position: number }>`
   position: absolute;
@@ -601,80 +558,6 @@ const CardPositionIndicator = styled.div<{ position: number }>`
   }
 `
 
-const KnownCardValueBadge = styled.div<{ cardValue: number }>`
-  position: absolute;
-  bottom: 4px;
-  left: 26px;
-  min-width: 20px;
-  height: 20px;
-  background: ${props => {
-    if (props.cardValue <= 0) return 'linear-gradient(135deg, #10B981 0%, #059669 100%)'; // Green for excellent
-    if (props.cardValue <= 3) return 'linear-gradient(135deg, #34D399 0%, #10B981 100%)'; // Light green for great
-    if (props.cardValue <= 6) return 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)'; // Yellow for good
-    if (props.cardValue <= 9) return 'linear-gradient(135deg, #FB923C 0%, #EA580C 100%)'; // Orange for okay
-    return 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)'; // Red for bad
-  }};
-  color: white;
-  font-size: 11px;
-  font-weight: bold;
-  border-radius: 10px;
-  border: ${props => {
-    if (props.cardValue <= 0) return '2px solid #065F46'; // Dark green border for excellent
-    if (props.cardValue >= 10) return '2px solid #991B1B'; // Dark red border for very bad
-    return '1px solid white';
-  }};
-  box-shadow: ${props => {
-    if (props.cardValue <= 0) return '0 3px 6px rgba(16, 185, 129, 0.4), 0 0 8px rgba(16, 185, 129, 0.3)'; // Green glow for excellent
-    if (props.cardValue >= 10) return '0 3px 6px rgba(239, 68, 68, 0.4), 0 0 8px rgba(239, 68, 68, 0.3)'; // Red glow for very bad
-    return '0 2px 4px rgba(0, 0, 0, 0.4)';
-  }};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 4px;
-  font-family: 'JetBrains Mono', monospace;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  
-  /* Enhanced animation for excellent/terrible cards */
-  ${props => (props.cardValue <= 0 || props.cardValue >= 10) && `
-    animation: valuePulse 2s infinite;
-    
-    @keyframes valuePulse {
-      0%, 100% {
-        transform: scale(1);
-        opacity: 1;
-      }
-      50% {
-        transform: scale(1.05);
-        opacity: 0.9;
-      }
-    }
-  `}
-  
-  /* Size boost for extreme values */
-  ${props => (props.cardValue <= 0 || props.cardValue >= 10) && `
-    min-width: 24px;
-    height: 24px;
-    font-size: 12px;
-    font-weight: 900;
-  `}
-  
-  @media (max-width: 768px) {
-    min-width: 18px;
-    height: 18px;
-    font-size: 10px;
-    bottom: 3px;
-    left: 22px;
-  }
-  
-  @media (max-width: 480px) {
-    min-width: 16px;
-    height: 16px;
-    font-size: 8px;
-    bottom: 2px;
-    left: 18px;
-  }
-`
 
 export const PlayingCard: React.FC<PlayingCardProps> = ({
   playerCard,
@@ -734,13 +617,6 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
   }
 
   // Strategy guidance functions
-  const getCardValueDescription = (value: number) => {
-    if (value <= 0) return 'Excellent! Negative/zero points'
-    if (value <= 3) return 'Great! Very low points'
-    if (value <= 6) return 'Good. Moderate points'
-    if (value <= 9) return 'Okay. Higher points'
-    return 'Bad! High points'
-  }
 
   const getStrategyTooltip = () => {
     // Only show tooltips during CARD_VIEWING phase to help players learn their cards
@@ -765,7 +641,7 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
   const getReplacementAdvice = () => {
     if (!drawnCard || !card || !playerCard.isKnownToPlayer) return ''
     
-    const drawnCardData = actions.getCardById(drawnCard.cardId)
+    const drawnCardData = actions.getCardById(drawnCard)
     if (!drawnCardData) return ''
     
     const currentValue = card.value
@@ -786,10 +662,10 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
   
   const cardElement = (
     <CardContainer 
-      isClickable={isClickable} 
-      shouldShowCard={shouldShowCard} 
-      isRevealed={playerCard.isRevealed}
-      isKnownToPlayer={playerCard.isKnownToPlayer}
+      isClickable={Boolean(isClickable)} 
+      shouldShowCard={Boolean(shouldShowCard)} 
+      isRevealed={Boolean(playerCard.isRevealed)}
+      isKnownToPlayer={Boolean(playerCard.isKnownToPlayer)}
       showAsOpponent={showAsOpponent}
       onClick={handleCardClick}
     >

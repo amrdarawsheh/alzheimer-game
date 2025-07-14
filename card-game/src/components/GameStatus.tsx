@@ -399,7 +399,6 @@ const ProgressText = styled.div`
 export const GameStatus: React.FC = () => {
   const { gameState, actions } = useGame()
   const currentPlayer = actions.getCurrentPlayer()
-  const stats = actions.getGameStatistics()
 
   const getPhaseDisplay = (phase: GamePhase) => {
     switch (phase) {
