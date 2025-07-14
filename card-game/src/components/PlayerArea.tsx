@@ -2,6 +2,7 @@ import React from 'react'
 import styled from 'styled-components'
 import type { Player } from '../types'
 import { PlayingCard } from './PlayingCard'
+import { useGame } from '../hooks/useGame'
 
 interface PlayerAreaProps {
   player: Player
@@ -166,6 +167,10 @@ const CardsContainer = styled.div<{ showAsOpponent: boolean }>`
   gap: ${props => props.showAsOpponent ? '8px' : '12px'};
   transition: all 0.3s ease;
   
+  &:hover {
+    transform: translateY(-1px);
+  }
+  
   @media (max-width: 768px) {
     gap: ${props => props.showAsOpponent ? '6px' : '8px'};
   }
@@ -219,7 +224,9 @@ export const PlayerArea: React.FC<PlayerAreaProps> = ({
   isCurrentPlayer, 
   showAsOpponent 
 }) => {
+  const { gameState } = useGame()
   const playerScore = player.score > 0 ? player.score : null
+  const isBotThinking = gameState.ui.isBotThinking && isCurrentPlayer && player.type === 'bot'
 
   return (
     <PlayerContainer isCurrentPlayer={isCurrentPlayer} showAsOpponent={showAsOpponent}>
@@ -266,7 +273,7 @@ export const PlayerArea: React.FC<PlayerAreaProps> = ({
       </CardsContainer>
 
       {/* Bot Status */}
-      {isCurrentPlayer && player.type === 'bot' && (
+      {isBotThinking && (
         <BotStatus>
           <div className="thinking">
             Bot is thinking...

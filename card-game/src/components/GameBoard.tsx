@@ -54,6 +54,10 @@ const GameContainer = styled.div`
     max-width: 100%;
     padding: 4px;
   }
+  
+  @media (max-width: 480px) {
+    padding: 8px;
+  }
 `
 
 const TableEdge = styled.div`
@@ -62,6 +66,18 @@ const TableEdge = styled.div`
   padding: 8px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   border: 4px solid #ffeb3b;
+  
+  @media (max-width: 768px) {
+    border-radius: 12px;
+    padding: 6px;
+    border-width: 3px;
+  }
+  
+  @media (max-width: 480px) {
+    border-radius: 8px;
+    padding: 4px;
+    border-width: 2px;
+  }
 `
 
 const FeltSurface = styled.div`
@@ -72,6 +88,18 @@ const FeltSurface = styled.div`
   border: 4px solid #8bc34a;
   position: relative;
   overflow: hidden;
+  
+  @media (max-width: 768px) {
+    border-radius: 8px;
+    padding: 8px;
+    border-width: 3px;
+  }
+  
+  @media (max-width: 480px) {
+    border-radius: 6px;
+    padding: 6px;
+    border-width: 2px;
+  }
   
   &::before {
     content: '';
@@ -90,6 +118,10 @@ const FeltSurface = styled.div`
     );
     background-size: 20px 20px;
     opacity: 0.3;
+    
+    @media (max-width: 480px) {
+      background-size: 15px 15px;
+    }
   }
 `
 
@@ -106,6 +138,18 @@ const GameTitle = styled.h1<{ isPlaying?: boolean }>`
   letter-spacing: ${props => props.isPlaying ? '1px' : '2px'};
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease;
+  
+  @media (max-width: 768px) {
+    font-size: ${props => props.isPlaying ? '1.5rem' : '2rem'};
+    letter-spacing: ${props => props.isPlaying ? '0.5px' : '1px'};
+    margin-bottom: ${props => props.isPlaying ? '6px' : '12px'};
+  }
+  
+  @media (max-width: 480px) {
+    font-size: ${props => props.isPlaying ? '1.25rem' : '1.5rem'};
+    letter-spacing: 0.5px;
+    margin-bottom: ${props => props.isPlaying ? '4px' : '8px'};
+  }
 `
 
 const TitleDivider = styled.div`
@@ -145,6 +189,75 @@ const WelcomeText = styled.p`
   font-weight: 600;
   text-align: center;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+`
+
+// New responsive layout components
+const GameLayout = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  
+  @media (max-width: 768px) {
+    gap: 12px;
+  }
+  
+  @media (max-width: 480px) {
+    gap: 8px;
+  }
+`
+
+const OpponentsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  @media (max-width: 480px) {
+    gap: 8px;
+  }
+`
+
+const CenterGameArea = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  @media (max-width: 480px) {
+    gap: 12px;
+  }
+`
+
+const PlayerContainer = styled.div`
+  display: flex;
+  justify-content: center;
+`
+
+const ControlsContainer = styled.div`
+  display: flex;
+  justify-content: center;
+`
+
+const StatusContainer = styled.div`
+  text-align: center;
+  margin-top: 16px;
+  
+  @media (max-width: 768px) {
+    margin-top: 12px;
+  }
+  
+  @media (max-width: 480px) {
+    margin-top: 8px;
+  }
 `
 
 export const GameBoard: React.FC = () => {
@@ -206,11 +319,11 @@ export const GameBoard: React.FC = () => {
 
           {/* Main Game Area */}
           {(gameState.round.phase === GamePhase.CARD_VIEWING || gameState.round.phase === GamePhase.PLAYING || gameState.round.phase === GamePhase.SCORING || gameState.round.phase === GamePhase.FINISHED) && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <GameLayout>
               
               {/* Top Player Area (Opponents) */}
               {gameState.players.length > 1 && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+                <OpponentsGrid>
                   {gameState.players.slice(1).map((player, index) => (
                     <PlayerArea 
                       key={player.id} 
@@ -219,42 +332,40 @@ export const GameBoard: React.FC = () => {
                       showAsOpponent={true}
                     />
                   ))}
-                </div>
+                </OpponentsGrid>
               )}
 
               {/* Center Game Area */}
-              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px' }}>
-                
+              <CenterGameArea>
                 {/* Deck and Discard */}
                 <DeckArea />
                 
                 {/* Drawn Card Display */}
                 <DrawnCard />
-                
-              </div>
+              </CenterGameArea>
 
               {/* Bottom Player Area (Human Player) */}
               {gameState.players.length > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <PlayerContainer>
                   <PlayerArea 
                     player={gameState.players[0]} 
                     isCurrentPlayer={gameState.round.currentPlayerIndex === 0}
                     showAsOpponent={false}
                   />
-                </div>
+                </PlayerContainer>
               )}
 
               {/* Game Controls */}
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <ControlsContainer>
                 <GameControls />
-              </div>
+              </ControlsContainer>
 
               {/* Game Status at bottom */}
-              <div style={{ textAlign: 'center', marginTop: '16px' }}>
+              <StatusContainer>
                 <GameStatus />
-              </div>
+              </StatusContainer>
 
-            </div>
+            </GameLayout>
           )}
 
           </FeltSurface>

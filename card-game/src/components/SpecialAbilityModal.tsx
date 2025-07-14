@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import styled from 'styled-components'
 import { useGame } from '../hooks/useGame'
+import { ActionIndicator } from './ActionIndicator'
 import type { Card, Player } from '../types'
 
 interface SpecialAbilityModalProps {
@@ -513,6 +514,7 @@ export const SpecialAbilityModal: React.FC<SpecialAbilityModalProps> = ({
     targetPlayerId: null,
     targetCardIndex: null
   })
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null)
 
   const currentPlayer = actions.getCurrentPlayer()
   const otherPlayers = gameState.players.filter(p => p.id !== currentPlayer?.id)
@@ -577,10 +579,37 @@ export const SpecialAbilityModal: React.FC<SpecialAbilityModalProps> = ({
             (selectionType === 'player' && selectedSwapData.playerCardIndex === index) ||
             (selectionType === 'target' && selectedSwapData.targetPlayerId === player.id && selectedSwapData.targetCardIndex === index)
 
+          const cardKey = `${player.id}-${index}`
+          const isHovered = hoveredCard === cardKey
+
+          // Get action text based on ability type and selection state
+          const getActionText = () => {
+            if (abilityType === 'peek') {
+              return isSelected ? 'Selected to peek' : 'Click to peek'
+            } else if (abilityType === 'swap') {
+              if (isCurrentPlayer) {
+                return isSelected ? 'Your card selected' : 'Click to select your card'
+              } else {
+                return isSelected ? 'Target card selected' : 'Click to select target'
+              }
+            }
+            return 'Click to select'
+          }
+
+          // Get indicator variant based on ability and selection type
+          const getIndicatorVariant = () => {
+            if (abilityType === 'peek') return 'info'
+            if (abilityType === 'swap' && isCurrentPlayer) return 'primary'
+            if (abilityType === 'swap' && !isCurrentPlayer) return 'success'
+            return 'primary'
+          }
+
           return (
             <CardSlot
               key={index}
               isSelected={isSelected}
+              onMouseEnter={() => setHoveredCard(cardKey)}
+              onMouseLeave={() => setHoveredCard(null)}
               onClick={() => {
                 if (abilityType === 'peek') {
                   handlePeekSelect(playerCard.cardId)
@@ -593,6 +622,14 @@ export const SpecialAbilityModal: React.FC<SpecialAbilityModalProps> = ({
                 }
               }}
             >
+              {/* Action Indicator */}
+              <ActionIndicator
+                action={getActionText()}
+                visible={isHovered && !isSelected}
+                position="top"
+                variant={getIndicatorVariant()}
+              />
+
               <CardSlotContent>
                 {isCurrentPlayer && playerCard.isKnownToPlayer ? (
                   <CardStatus isKnown={true}>Known</CardStatus>

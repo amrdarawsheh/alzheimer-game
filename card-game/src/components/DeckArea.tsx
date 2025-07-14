@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import styled from 'styled-components'
 import { useGame } from '../hooks/useGame'
+import { ActionIndicator } from './ActionIndicator'
 
 // Styled Components for Enhanced Deck Area
 const DeckContainer = styled.div`
@@ -62,13 +63,29 @@ const CardPile = styled.div<{ canDraw: boolean; isEmpty: boolean; isDiscard?: bo
   }};
   position: relative;
   cursor: ${props => props.canDraw ? 'pointer' : 'default'};
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   background: ${props => {
     if (props.isEmpty) return 'linear-gradient(135deg, #6B7280 0%, #4B5563 100%)';
     if (props.isDiscard) return 'linear-gradient(135deg, #F8F9FA 0%, #E9ECEF 100%)';
     return 'linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)';
   }};
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  
+  /* Draw animation pulse */
+  ${props => props.canDraw && `
+    animation: drawPulse 2s infinite;
+    
+    @keyframes drawPulse {
+      0%, 100% {
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2), 
+                    0 0 0 0 ${props.isDiscard ? 'rgba(139, 92, 246, 0.7)' : 'rgba(59, 130, 246, 0.7)'};
+      }
+      50% {
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2), 
+                    0 0 0 8px ${props.isDiscard ? 'rgba(139, 92, 246, 0)' : 'rgba(59, 130, 246, 0)'};
+      }
+    }
+  `}
   
   @media (max-width: 768px) {
     width: 80px;
@@ -401,6 +418,8 @@ const DeckStatusIndicator = styled.div<{ cardsLeft: number; total: number }>`
 
 export const DeckArea: React.FC = () => {
   const { gameState, actions } = useGame()
+  const [hoveredPile, setHoveredPile] = useState<'deck' | 'discard' | null>(null)
+  
   const currentPlayer = actions.getCurrentPlayer()
   const isHumanTurn = currentPlayer?.type === 'human'
   const hasDrawnCard = !!gameState.ui.selectedCard
@@ -450,7 +469,19 @@ export const DeckArea: React.FC = () => {
           canDraw={canDrawFromDeck}
           isEmpty={gameState.deck.drawPile.length === 0}
           onClick={canDrawFromDeck ? () => actions.drawFromDeck() : undefined}
+          onMouseEnter={() => setHoveredPile('deck')}
+          onMouseLeave={() => setHoveredPile(null)}
         >
+        
+          {/* Action Indicator */}
+          {canDrawFromDeck && (
+            <ActionIndicator
+              action="Click to draw"
+              visible={hoveredPile === 'deck'}
+              position="top"
+              variant="primary"
+            />
+          )}
           
           {/* Deck Stack Effect */}
           {gameState.deck.drawPile.length > 0 && (
@@ -510,7 +541,19 @@ export const DeckArea: React.FC = () => {
           isEmpty={gameState.deck.discardPile.length === 0}
           isDiscard={true}
           onClick={canDrawFromDiscard ? () => actions.drawFromDiscard() : undefined}
+          onMouseEnter={() => setHoveredPile('discard')}
+          onMouseLeave={() => setHoveredPile(null)}
         >
+        
+          {/* Action Indicator */}
+          {canDrawFromDiscard && (
+            <ActionIndicator
+              action="Click to draw"
+              visible={hoveredPile === 'discard'}
+              position="top"
+              variant="info"
+            />
+          )}
           
           {gameState.deck.discardPile.length > 0 && topDiscardCard ? (
             /* Top Discard Card */

@@ -67,6 +67,8 @@ export const initialGameState: GameState = {
     animationQueue: [],
     isActionInProgress: false,
     currentModal: null,
+    isBotThinking: false,
+    botThinkingStartTime: null,
   },
 };
 
@@ -150,11 +152,12 @@ export const gameReducer = (
       const allCards = createDeck();
       const cardIds = shuffleDeck(allCards);
       
-      // Reset players for new round
+      // Reset players for new round, preserving roundWins
       const resetPlayers = state.players.map(player => ({
         ...player,
         cards: [],
         score: 0,
+        roundWins: state.match.roundWins[player.id] || 0, // Sync with match.roundWins
       }));
       
       // Deal new cards
@@ -220,12 +223,18 @@ export const gameReducer = (
       const updatedRoundWins = { ...state.match.roundWins };
       updatedRoundWins[winner.id] = (updatedRoundWins[winner.id] || 0) + 1;
       
+      // Sync player.roundWins with match.roundWins
+      const playersWithSyncedWins = updatedPlayers.map(player => ({
+        ...player,
+        roundWins: updatedRoundWins[player.id] || 0,
+      }));
+      
       // Check if someone won the match
       const matchWinner = checkMatchWinner(updatedRoundWins, state.match.roundsToWin);
       
       return {
         ...state,
-        players: updatedPlayers,
+        players: playersWithSyncedWins,
         match: {
           ...state.match,
           roundWins: updatedRoundWins,
@@ -242,7 +251,7 @@ export const gameReducer = (
         lastAction: {
           type: action.type,
           playerId: 'system',
-          details: { roundWinner: winner.id, scores: updatedPlayers.map(p => ({ id: p.id, score: p.score })) },
+          details: { roundWinner: winner.id, scores: playersWithSyncedWins.map(p => ({ id: p.id, score: p.score })) },
           timestamp: Date.now(),
         },
       };
@@ -714,6 +723,29 @@ export const gameReducer = (
         ui: {
           ...state.ui,
           isActionInProgress: action.payload.inProgress,
+        },
+      };
+    }
+
+    // Bot Thinking Actions
+    case 'SET_BOT_THINKING': {
+      return {
+        ...state,
+        ui: {
+          ...state.ui,
+          isBotThinking: action.payload.thinking,
+          botThinkingStartTime: action.payload.thinking ? Date.now() : null,
+        },
+      };
+    }
+    
+    case 'CLEAR_BOT_THINKING': {
+      return {
+        ...state,
+        ui: {
+          ...state.ui,
+          isBotThinking: false,
+          botThinkingStartTime: null,
         },
       };
     }

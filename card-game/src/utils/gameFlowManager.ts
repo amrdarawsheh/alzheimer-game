@@ -74,8 +74,13 @@ export class GameFlowManager {
 
     // Process bot turns if current player is a bot
     const currentPlayer = this.getCurrentPlayer();
-    if (currentPlayer && currentPlayer.type === PlayerType.BOT) {
+    if (currentPlayer && currentPlayer.type === PlayerType.BOT && !this.gameState.ui.isBotThinking) {
+      // Set bot thinking state
+      this.dispatch({ type: 'SET_BOT_THINKING', payload: { thinking: true } });
+      
+      // Add thinking delay then process bot turn
       addBotThinkingDelay().then(() => {
+        this.dispatch({ type: 'CLEAR_BOT_THINKING', payload: {} });
         this.processBotTurn();
       });
     }

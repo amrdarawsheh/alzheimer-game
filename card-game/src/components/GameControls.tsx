@@ -74,26 +74,73 @@ const Input = styled.input`
 const StartGameButton = styled.button`
   width: 100%;
   padding: 16px 32px;
-  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-  color: white;
   font-size: 18px;
   font-weight: bold;
-  border: 3px solid #047857;
-  border-radius: 12px;
+  border-radius: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 3px solid;
+  position: relative;
+  z-index: 100;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.5px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: white;
+  border-color: #047857;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4), 0 3px 8px rgba(0, 0, 0, 0.2);
+  
+  /* Enhanced accessibility */
+  &:focus {
+    outline: none;
+    ring: 3px solid rgba(16, 185, 129, 0.5);
+    ring-offset: 2px;
+  }
+  
+  /* Ripple effect */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+    pointer-events: none;
+  }
+  
+  &:active::before {
+    width: 300px;
+    height: 300px;
+  }
   
   &:hover {
     background: linear-gradient(135deg, #059669 0%, #047857 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 12px 30px rgba(16, 185, 129, 0.5);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.6), 0 5px 15px rgba(0, 0, 0, 0.3);
     border-color: #065F46;
   }
   
   &:active {
-    transform: translateY(0);
-    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+    transform: translateY(-1px) scale(1.01);
+    transition: all 0.1s ease;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 14px 28px;
+    font-size: 16px;
+    border-radius: 12px;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 12px 24px;
+    font-size: 15px;
+    border-radius: 10px;
   }
 `
 

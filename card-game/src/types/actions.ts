@@ -67,6 +67,8 @@ export type GameAction =
   // Bot Actions
   | { type: 'BOT_MAKE_MOVE'; payload: { playerId: string; move: BotMove } }
   | { type: 'BOT_THINKING'; payload: { playerId: string; thinking: boolean } }
+  | { type: 'SET_BOT_THINKING'; payload: { thinking: boolean } }
+  | { type: 'CLEAR_BOT_THINKING'; payload: Record<string, never> }
 
   // Game State Updates
   | {

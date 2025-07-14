@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useGame } from '../hooks/useGame'
 
 interface ScoreModalProps {
@@ -7,6 +7,28 @@ interface ScoreModalProps {
 
 export const ScoreModal: React.FC<ScoreModalProps> = ({ onContinue }) => {
   const { gameState } = useGame()
+  const buttonRef = useRef<HTMLButtonElement>(null)
+
+  // Focus management and keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        // Escape should not continue - let modal remain open for explicit user action
+        return
+      } else if (event.key === 'Enter') {
+        onContinue()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    
+    // Focus the button when modal opens
+    if (buttonRef.current) {
+      buttonRef.current.focus()
+    }
+
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [onContinue])
   
   // Calculate round winner and scores
   const playersWithScores = gameState.players.map(player => ({
@@ -21,8 +43,13 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({ onContinue }) => {
     : null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 p-2 sm:p-4 overflow-y-auto"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+    >
+      <div className="bg-white rounded-lg shadow-xl max-w-lg w-full my-2 sm:my-4 min-h-fit max-h-[calc(100vh-1rem)] sm:max-h-[calc(100vh-2rem)] overflow-y-auto">
         
         {/* Header */}
         <div className={`
@@ -32,7 +59,7 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({ onContinue }) => {
             : 'bg-gradient-to-r from-blue-500 to-purple-500'
           }
         `}>
-          <h2 className="text-2xl font-bold text-center">
+          <h2 id="modal-title" className="text-2xl font-bold text-center">
             {isMatchComplete ? '🎉 Match Complete! 🎉' : `Round ${gameState.match.currentRound} Results`}
           </h2>
           {isMatchComplete && matchWinner && (
@@ -173,14 +200,16 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({ onContinue }) => {
         {/* Footer */}
         <div className="bg-gray-50 px-6 py-4 rounded-b-lg">
           <button
+            ref={buttonRef}
             onClick={onContinue}
             className={`
-              w-full px-6 py-3 rounded font-semibold transition-colors
+              w-full px-6 py-3 rounded font-semibold transition-colors focus:outline-none focus:ring-4 focus:ring-opacity-50
               ${isMatchComplete
-                ? 'bg-green-600 text-white hover:bg-green-700'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
+                ? 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-300'
+                : 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-300'
               }
             `}
+            aria-label={isMatchComplete ? 'Start a new game' : 'Continue to the next round'}
           >
             {isMatchComplete ? 'New Game' : 'Continue to Next Round'}
           </button>
