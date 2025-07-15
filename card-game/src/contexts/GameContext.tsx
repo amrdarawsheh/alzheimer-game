@@ -48,6 +48,37 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, [gameState.round.phase, gameState.round.currentPlayerIndex, gameState.ui.selectedCard, processFlow]);
 
+  // Timer management
+  useEffect(() => {
+    if (gameState.ui.turnTimer?.isActive) {
+      const timerInterval = setInterval(() => {
+        const now = Date.now();
+        const elapsed = now - gameState.ui.turnTimer!.startTime;
+        const remainingTime = Math.max(0, gameState.ui.turnTimer!.duration - elapsed);
+        
+        if (remainingTime <= 0) {
+          // Timer expired - end turn automatically
+          dispatch({ type: 'TIMER_EXPIRED', payload: {} });
+          const currentPlayer = getCurrentPlayer();
+          if (currentPlayer) {
+            dispatch({
+              type: 'END_TURN',
+              payload: { playerId: currentPlayer.id },
+            });
+          }
+        } else {
+          // Update remaining time
+          dispatch({
+            type: 'UPDATE_TURN_TIMER',
+            payload: { remainingTime },
+          });
+        }
+      }, 100); // Update every 100ms for smooth countdown
+      
+      return () => clearInterval(timerInterval);
+    }
+  }, [gameState.ui.turnTimer?.isActive, gameState.ui.turnTimer?.startTime]);
+
   // Game control functions
   const startGame = (playerCount: number, playerNames: string[]) => {
     dispatch({
@@ -63,6 +94,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
   const endTurn = () => {
     const currentPlayer = getCurrentPlayer();
     if (currentPlayer) {
+      // Stop any active timer
+      if (gameState.ui.turnTimer?.isActive) {
+        dispatch({ type: 'STOP_TURN_TIMER', payload: {} });
+      }
+      
       dispatch({
         type: 'END_TURN',
         payload: { playerId: currentPlayer.id },
@@ -73,6 +109,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
   const callStop = () => {
     const currentPlayer = getCurrentPlayer();
     if (currentPlayer && canCallStop()) {
+      // Stop any active timer
+      if (gameState.ui.turnTimer?.isActive) {
+        dispatch({ type: 'STOP_TURN_TIMER', payload: {} });
+      }
+      
       dispatch({
         type: 'CALL_STOP',
         payload: { playerId: currentPlayer.id },
@@ -120,13 +161,22 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
           drawnCardId,
         },
       });
-      // Automatically end turn after replacing card
-      setTimeout(() => {
+      
+      // Start 5-second timer for human players only
+      if (currentPlayer.type === 'human') {
         dispatch({
-          type: 'END_TURN',
-          payload: { playerId: currentPlayer.id },
+          type: 'START_TURN_TIMER',
+          payload: { duration: 5000 },
         });
-      }, 500);
+      } else {
+        // For bots, end turn immediately as before
+        setTimeout(() => {
+          dispatch({
+            type: 'END_TURN',
+            payload: { playerId: currentPlayer.id },
+          });
+        }, 500);
+      }
     }
   };
 

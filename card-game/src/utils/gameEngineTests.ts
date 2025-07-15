@@ -65,6 +65,7 @@ export const createMockGameState = (): GameState => {
       currentModal: null,
       isBotThinking: false,
       botThinkingStartTime: null,
+      turnTimer: null,
     },
   };
 };

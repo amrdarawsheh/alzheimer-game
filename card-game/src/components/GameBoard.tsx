@@ -207,12 +207,14 @@ const GameLayout = styled.div`
 `
 
 const OpponentsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: 16px;
   
   @media (max-width: 768px) {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: center;
     gap: 12px;
   }
   

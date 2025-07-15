@@ -108,6 +108,12 @@ export interface UIState {
   currentModal: string | null; // Will be properly typed as ModalType in Task 1.5
   isBotThinking: boolean; // Whether bot is currently thinking
   botThinkingStartTime: number | null; // When bot started thinking
+  turnTimer: {
+    isActive: boolean;
+    startTime: number;
+    duration: number; // timer duration in milliseconds
+    remainingTime: number; // remaining time in milliseconds
+  } | null;
 }
 
 export const ModalType = {

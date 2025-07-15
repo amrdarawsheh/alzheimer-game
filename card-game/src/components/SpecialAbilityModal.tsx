@@ -631,13 +631,9 @@ export const SpecialAbilityModal: React.FC<SpecialAbilityModalProps> = ({
               />
 
               <CardSlotContent>
-                {isCurrentPlayer && playerCard.isKnownToPlayer ? (
-                  <CardStatus isKnown={true}>Known</CardStatus>
-                ) : (
-                  <CardStatus isKnown={false}>
-                    Card {index + 1}
-                  </CardStatus>
-                )}
+                <CardStatus isKnown={false}>
+                  Card {index + 1}
+                </CardStatus>
               </CardSlotContent>
             </CardSlot>
           )

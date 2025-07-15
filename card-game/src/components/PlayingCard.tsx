@@ -638,25 +638,25 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
     return ''
   }
 
-  const getReplacementAdvice = () => {
-    if (!drawnCard || !card || !playerCard.isKnownToPlayer) return ''
-    
-    const drawnCardData = actions.getCardById(drawnCard)
-    if (!drawnCardData) return ''
-    
-    const currentValue = card.value
-    const newValue = drawnCardData.value
-    
-    if (newValue < currentValue) {
-      const savings = currentValue - newValue
-      return `Good trade! Save ${savings} point${savings !== 1 ? 's' : ''}`
-    } else if (newValue > currentValue) {
-      const cost = newValue - currentValue
-      return `Bad trade! Costs ${cost} extra point${cost !== 1 ? 's' : ''}`
-    } else {
-      return 'Same value - no advantage'
-    }
-  }
+  // const getReplacementAdvice = () => {
+  //   if (!drawnCard || !card || !playerCard.isKnownToPlayer) return ''
+  //   
+  //   const drawnCardData = actions.getCardById(drawnCard)
+  //   if (!drawnCardData) return ''
+  //   
+  //   const currentValue = card.value
+  //   const newValue = drawnCardData.value
+  //   
+  //   if (newValue < currentValue) {
+  //     const savings = currentValue - newValue
+  //     return `Good trade! Save ${savings} point${savings !== 1 ? 's' : ''}`
+  //   } else if (newValue > currentValue) {
+  //     const cost = newValue - currentValue
+  //     return `Bad trade! Costs ${cost} extra point${cost !== 1 ? 's' : ''}`
+  //   } else {
+  //     return 'Same value - no advantage'
+  //   }
+  // }
 
   const tooltipContent = getStrategyTooltip()
   
@@ -741,11 +741,6 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
         <ReplacementOverlay onClick={handleCardClick}>
           <div className="replace-text">
             Click to Replace
-            {getReplacementAdvice() && (
-              <div style={{ fontSize: '10px', marginTop: '2px', opacity: 0.9 }}>
-                {getReplacementAdvice()}
-              </div>
-            )}
           </div>
         </ReplacementOverlay>
       )}

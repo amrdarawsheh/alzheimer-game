@@ -70,6 +70,12 @@ export type GameAction =
   | { type: 'SET_BOT_THINKING'; payload: { thinking: boolean } }
   | { type: 'CLEAR_BOT_THINKING'; payload: Record<string, never> }
 
+  // Timer Actions
+  | { type: 'START_TURN_TIMER'; payload: { duration: number } }
+  | { type: 'UPDATE_TURN_TIMER'; payload: { remainingTime: number } }
+  | { type: 'STOP_TURN_TIMER'; payload: Record<string, never> }
+  | { type: 'TIMER_EXPIRED'; payload: Record<string, never> }
+
   // Game State Updates
   | {
       type: 'UPDATE_PLAYER_KNOWLEDGE';

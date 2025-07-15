@@ -69,6 +69,7 @@ export const initialGameState: GameState = {
     currentModal: null,
     isBotThinking: false,
     botThinkingStartTime: null,
+    turnTimer: null,
   },
 };
 
@@ -768,6 +769,60 @@ export const gameReducer = (
           playerId: action.payload.playerId,
           details: action.payload,
           timestamp: Date.now(),
+        },
+      };
+    }
+
+    // Timer Actions
+    case 'START_TURN_TIMER': {
+      const { duration } = action.payload;
+      const now = Date.now();
+      return {
+        ...state,
+        ui: {
+          ...state.ui,
+          turnTimer: {
+            isActive: true,
+            startTime: now,
+            duration,
+            remainingTime: duration,
+          },
+        },
+      };
+    }
+
+    case 'UPDATE_TURN_TIMER': {
+      const { remainingTime } = action.payload;
+      if (!state.ui.turnTimer) return state;
+      
+      return {
+        ...state,
+        ui: {
+          ...state.ui,
+          turnTimer: {
+            ...state.ui.turnTimer,
+            remainingTime,
+          },
+        },
+      };
+    }
+
+    case 'STOP_TURN_TIMER': {
+      return {
+        ...state,
+        ui: {
+          ...state.ui,
+          turnTimer: null,
+        },
+      };
+    }
+
+    case 'TIMER_EXPIRED': {
+      return {
+        ...state,
+        ui: {
+          ...state.ui,
+          turnTimer: null,
         },
       };
     }

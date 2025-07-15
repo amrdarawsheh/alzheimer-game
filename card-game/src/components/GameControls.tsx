@@ -477,7 +477,10 @@ export const GameControls: React.FC = () => {
             variant="dev"
             onClick={() => actions.forceEndTurn()}
           >
-            ⏭️ End Turn
+            {gameState.ui.turnTimer?.isActive 
+              ? `⏱️ End Turn (${Math.ceil(gameState.ui.turnTimer.remainingTime / 1000)}s)`
+              : "⏭️ End Turn"
+            }
           </ActionButton>
         )}
 
