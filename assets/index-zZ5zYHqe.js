@@ -758,7 +758,7 @@ Error generating stack: `+a.message+`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: repeat(2, 1fr);
-  gap: ${l=>l.showAsOpponent?"8px":"12px"};
+  gap: ${l=>l.showAsOpponent?"8px":"20px"};
   transition: all 0.3s ease;
   
   &:hover {
@@ -766,11 +766,11 @@ Error generating stack: `+a.message+`
   }
   
   @media (max-width: 768px) {
-    gap: ${l=>l.showAsOpponent?"6px":"8px"};
+    gap: ${l=>l.showAsOpponent?"6px":"16px"};
   }
   
   @media (max-width: 480px) {
-    gap: ${l=>l.showAsOpponent?"4px":"6px"};
+    gap: ${l=>l.showAsOpponent?"4px":"12px"};
   }
 `,Bm=z.div`
   margin-top: 12px;
