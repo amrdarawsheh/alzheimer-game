@@ -165,7 +165,7 @@ const CardsContainer = styled.div<{ showAsOpponent: boolean }>`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: repeat(2, 1fr);
-  gap: ${props => props.showAsOpponent ? '8px' : '12px'};
+  gap: ${props => props.showAsOpponent ? '8px' : '20px'};
   transition: all 0.3s ease;
   
   &:hover {
@@ -173,11 +173,11 @@ const CardsContainer = styled.div<{ showAsOpponent: boolean }>`
   }
   
   @media (max-width: 768px) {
-    gap: ${props => props.showAsOpponent ? '6px' : '8px'};
+    gap: ${props => props.showAsOpponent ? '6px' : '16px'};
   }
   
   @media (max-width: 480px) {
-    gap: ${props => props.showAsOpponent ? '4px' : '6px'};
+    gap: ${props => props.showAsOpponent ? '4px' : '12px'};
   }
 `
 
