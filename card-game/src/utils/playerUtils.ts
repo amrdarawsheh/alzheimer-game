@@ -197,6 +197,67 @@ export class EasyBot {
     // Easy bot uses abilities randomly (50% chance)
     return Math.random() > 0.5;
   }
+
+  /**
+   * Decides how to use a Queen's peek ability
+   * @param gameState Current game state
+   * @returns Target card ID for peek or null to skip
+   */
+  static decidePeekTarget(gameState: GameState): string | null {
+    const currentPlayer = getCurrentPlayer(gameState);
+    if (!currentPlayer) return null;
+
+    // Find cards that the bot doesn't know about
+    const unknownCards: string[] = [];
+    
+    // Check opponent cards
+    gameState.players.forEach(player => {
+      if (player.id !== currentPlayer.id) {
+        player.cards.forEach(playerCard => {
+          if (!playerCard.isKnownToPlayer) {
+            unknownCards.push(playerCard.cardId);
+          }
+        });
+      }
+    });
+
+    // If there are unknown cards, peek at one randomly
+    if (unknownCards.length > 0) {
+      return unknownCards[Math.floor(Math.random() * unknownCards.length)];
+    }
+
+    return null; // Skip if no unknown cards
+  }
+
+  /**
+   * Decides how to use a Jack's swap ability
+   * @param gameState Current game state
+   * @returns Swap parameters or null to skip
+   */
+  static decideSwapTarget(gameState: GameState): { 
+    playerCardIndex: number; 
+    targetPlayerId: string; 
+    targetCardIndex: number; 
+  } | null {
+    const currentPlayer = getCurrentPlayer(gameState);
+    if (!currentPlayer) return null;
+
+    // Find a random card from the bot's hand
+    const botCardIndex = Math.floor(Math.random() * currentPlayer.cards.length);
+    
+    // Find a random opponent
+    const opponents = gameState.players.filter(p => p.id !== currentPlayer.id);
+    if (opponents.length === 0) return null;
+    
+    const targetPlayer = opponents[Math.floor(Math.random() * opponents.length)];
+    const targetCardIndex = Math.floor(Math.random() * targetPlayer.cards.length);
+
+    return {
+      playerCardIndex: botCardIndex,
+      targetPlayerId: targetPlayer.id,
+      targetCardIndex: targetCardIndex
+    };
+  }
   
   /**
    * Generates a complete bot move

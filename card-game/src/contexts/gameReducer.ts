@@ -301,6 +301,10 @@ export const gameReducer = (
       const drawnCard = state.cards[drawnCardId];
       const hasSpecial = drawnCard && hasSpecialAbility(drawnCard, 'deck');
       
+      // Check if current player is a bot
+      const currentPlayer = state.players.find(p => p.id === playerId);
+      const isBot = currentPlayer?.type === 'bot';
+      
       return {
         ...state,
         deck: {
@@ -312,7 +316,7 @@ export const gameReducer = (
         ui: {
           ...state.ui,
           selectedCard: drawnCardId, // Store drawn card for replacement decision
-          currentModal: hasSpecial ? 'special-ability' : null, // Show special ability modal if needed
+          currentModal: (hasSpecial && !isBot) ? 'special-ability' : null, // Show special ability modal only for humans
         },
         lastAction: {
           type: action.type,
@@ -389,6 +393,10 @@ export const gameReducer = (
       const drawnCard = state.cards[drawnCardId];
       const hasAbility = hasSpecialAbility(drawnCard, 'deck');
       
+      // Check if current player is a bot
+      const currentPlayer = state.players.find(p => p.id === playerId);
+      const isBot = currentPlayer?.type === 'bot';
+      
       return {
         ...state,
         players: updatedPlayers,
@@ -399,7 +407,7 @@ export const gameReducer = (
         ui: {
           ...state.ui,
           selectedCard: null,
-          currentModal: hasAbility ? drawnCard.rank : null,
+          currentModal: (hasAbility && !isBot) ? drawnCard.rank : null,
           isActionInProgress: true, // Prevent multiple rapid actions
         },
         lastAction: {

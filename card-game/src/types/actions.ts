@@ -87,12 +87,14 @@ export interface BotMove {
     | 'replace_card'
     | 'discard_card'
     | 'call_stop'
-    | 'use_ability'
+    | 'use_peek'
+    | 'use_swap'
     | 'skip_ability';
   cardIndex?: number; // for replace_card
   targetPlayerId?: string; // for swap ability
   targetCardIndex?: number; // for swap ability
   targetCardId?: string; // for peek ability
+  playerCardIndex?: number; // for swap ability (bot's card)
 }
 
 export interface GameContextType {

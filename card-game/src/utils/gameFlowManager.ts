@@ -1,7 +1,7 @@
 // Game Flow Manager - handles automatic game progression and state transitions
 
 import type { GameState, GameAction } from '../types';
-import { GamePhase, PlayerType } from '../types';
+import { GamePhase, PlayerType, Rank } from '../types';
 import { 
   shouldEndRound, 
   getAvailableActions
@@ -111,6 +111,16 @@ export class GameFlowManager {
       return;
     }
 
+    // Check if bot has a special ability to use
+    const selectedCard = this.gameState.ui.selectedCard;
+    if (selectedCard) {
+      const drawnCard = this.gameState.cards[selectedCard];
+      if (drawnCard && drawnCard.isSpecial) {
+        this.processBotSpecialAbility(currentPlayer, drawnCard);
+        return;
+      }
+    }
+
     const botMove = EasyBot.generateMove(this.gameState);
     if (!botMove) {
       console.warn('Bot could not generate a valid move');
@@ -177,6 +187,77 @@ export class GameFlowManager {
       default:
         console.warn('Unknown bot action:', botMove.action);
         this.endTurn();
+    }
+  }
+
+  /**
+   * Processes bot special ability silently
+   */
+  private processBotSpecialAbility(currentPlayer: any, drawnCard: any): void {
+    // Decide whether to use the ability
+    if (!EasyBot.decideSpecialAbility()) {
+      // Skip the ability - discard the card
+      this.dispatch({
+        type: 'DISCARD_DRAWN_CARD',
+        payload: {
+          playerId: currentPlayer.id,
+          cardId: drawnCard.id,
+        },
+      });
+      setTimeout(() => this.endTurn(), 500);
+      return;
+    }
+
+    // Use the ability based on card type
+    if (drawnCard.rank === Rank.QUEEN) {
+      // Use peek ability
+      const peekTarget = EasyBot.decidePeekTarget(this.gameState);
+      if (peekTarget) {
+        this.dispatch({
+          type: 'PEEK_CARD',
+          payload: {
+            playerId: currentPlayer.id,
+            targetCardId: peekTarget,
+          },
+        });
+      } else {
+        // No good target, discard the card
+        this.dispatch({
+          type: 'DISCARD_DRAWN_CARD',
+          payload: {
+            playerId: currentPlayer.id,
+            cardId: drawnCard.id,
+          },
+        });
+      }
+      setTimeout(() => this.endTurn(), 500);
+    } else if (drawnCard.rank === Rank.JACK) {
+      // Use swap ability
+      const swapTarget = EasyBot.decideSwapTarget(this.gameState);
+      if (swapTarget) {
+        this.dispatch({
+          type: 'SWAP_CARDS',
+          payload: {
+            playerId: currentPlayer.id,
+            playerCardIndex: swapTarget.playerCardIndex,
+            targetPlayerId: swapTarget.targetPlayerId,
+            targetCardIndex: swapTarget.targetCardIndex,
+          },
+        });
+      } else {
+        // No good target, discard the card
+        this.dispatch({
+          type: 'DISCARD_DRAWN_CARD',
+          payload: {
+            playerId: currentPlayer.id,
+            cardId: drawnCard.id,
+          },
+        });
+      }
+      setTimeout(() => this.endTurn(), 500);
+    } else {
+      // Not a special card, continue with normal flow
+      this.processBotTurn();
     }
   }
 

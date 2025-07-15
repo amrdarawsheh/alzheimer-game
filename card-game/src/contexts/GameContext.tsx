@@ -36,6 +36,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
       } catch (error) {
         console.error('Error processing game flow:', error);
       }
+    } else {
+      console.warn('GameFlowManager is not available');
     }
   }, [gameFlowManager, gameState]);
 
@@ -230,11 +232,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
 
   // Bot functions
   const processBotTurn = () => {
-    // if (gameFlowManager) {
-    //   gameFlowManager.processBotTurn();
-    // } else {
+    if (gameFlowManager) {
+      gameFlowManager.processBotTurn();
+    } else {
       console.log('Bot automation temporarily disabled - GameFlowManager initialization issue');
-    // }
+    }
   };
 
   // Utility functions
