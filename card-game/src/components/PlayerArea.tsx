@@ -163,7 +163,8 @@ const PlayerStats = styled.div<{ showAsOpponent: boolean }>`
 
 const CardsContainer = styled.div<{ showAsOpponent: boolean }>`
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
   gap: ${props => props.showAsOpponent ? '8px' : '12px'};
   transition: all 0.3s ease;
   
