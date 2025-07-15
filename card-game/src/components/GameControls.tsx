@@ -471,16 +471,19 @@ export const GameControls: React.FC = () => {
           </ActionButton>
         )}
 
+        {/* End Turn Button (available for human players) */}
+        {isHumanTurn && !hasDrawnCard && (
+          <ActionButton
+            variant="dev"
+            onClick={() => actions.forceEndTurn()}
+          >
+            ⏭️ End Turn
+          </ActionButton>
+        )}
+
         {/* Development Controls (only in development) */}
         {import.meta.env.DEV && (
           <>
-            <ActionButton
-              variant="dev"
-              onClick={() => actions.forceEndTurn()}
-            >
-              ⏭️ Force End Turn
-            </ActionButton>
-            
             {currentPlayer?.type === 'bot' && (
               <ActionButton
                 variant="dev"
