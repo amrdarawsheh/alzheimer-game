@@ -76,6 +76,12 @@ export type GameAction =
   | { type: 'STOP_TURN_TIMER'; payload: Record<string, never> }
   | { type: 'TIMER_EXPIRED'; payload: Record<string, never> }
 
+  // Countdown Actions
+  | { type: 'START_COUNTDOWN'; payload: { duration: number } }
+  | { type: 'UPDATE_COUNTDOWN'; payload: { remainingTime: number } }
+  | { type: 'STOP_COUNTDOWN'; payload: Record<string, never> }
+  | { type: 'COUNTDOWN_EXPIRED'; payload: Record<string, never> }
+
   // Game State Updates
   | {
       type: 'UPDATE_PLAYER_KNOWLEDGE';
@@ -158,4 +164,8 @@ export interface GameContextType {
   forceNextRound: () => void;
   getGameFlowInfo: () => Record<string, unknown>;
   forceProgressScoring: () => void;
+
+  // Countdown functions
+  startCountdown: (duration: number) => void;
+  stopCountdown: () => void;
 }

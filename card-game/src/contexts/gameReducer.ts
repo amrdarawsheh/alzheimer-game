@@ -70,6 +70,7 @@ export const initialGameState: GameState = {
     isBotThinking: false,
     botThinkingStartTime: null,
     turnTimer: null,
+    startCountdown: null,
   },
 };
 
@@ -823,6 +824,60 @@ export const gameReducer = (
         ui: {
           ...state.ui,
           turnTimer: null,
+        },
+      };
+    }
+
+    // Countdown Actions
+    case 'START_COUNTDOWN': {
+      const { duration } = action.payload;
+      const now = Date.now();
+      return {
+        ...state,
+        ui: {
+          ...state.ui,
+          startCountdown: {
+            isActive: true,
+            startTime: now,
+            duration,
+            remainingTime: duration,
+          },
+        },
+      };
+    }
+
+    case 'UPDATE_COUNTDOWN': {
+      const { remainingTime } = action.payload;
+      if (!state.ui.startCountdown) return state;
+      
+      return {
+        ...state,
+        ui: {
+          ...state.ui,
+          startCountdown: {
+            ...state.ui.startCountdown,
+            remainingTime,
+          },
+        },
+      };
+    }
+
+    case 'STOP_COUNTDOWN': {
+      return {
+        ...state,
+        ui: {
+          ...state.ui,
+          startCountdown: null,
+        },
+      };
+    }
+
+    case 'COUNTDOWN_EXPIRED': {
+      return {
+        ...state,
+        ui: {
+          ...state.ui,
+          startCountdown: null,
         },
       };
     }

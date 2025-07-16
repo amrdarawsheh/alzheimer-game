@@ -79,6 +79,31 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, [gameState.ui.turnTimer?.isActive, gameState.ui.turnTimer?.startTime]);
 
+  // Countdown management
+  useEffect(() => {
+    if (gameState.ui.startCountdown?.isActive) {
+      const countdownInterval = setInterval(() => {
+        const now = Date.now();
+        const elapsed = now - gameState.ui.startCountdown!.startTime;
+        const remainingTime = Math.max(0, gameState.ui.startCountdown!.duration - elapsed);
+        
+        if (remainingTime <= 0) {
+          // Countdown expired - automatically start playing
+          dispatch({ type: 'COUNTDOWN_EXPIRED', payload: {} });
+          dispatch({ type: 'START_PLAYING', payload: {} });
+        } else {
+          // Update remaining time
+          dispatch({
+            type: 'UPDATE_COUNTDOWN',
+            payload: { remainingTime },
+          });
+        }
+      }, 100); // Update every 100ms for smooth countdown
+      
+      return () => clearInterval(countdownInterval);
+    }
+  }, [gameState.ui.startCountdown?.isActive, gameState.ui.startCountdown?.startTime]);
+
   // Game control functions
   const startGame = (playerCount: number, playerNames: string[]) => {
     dispatch({
@@ -364,8 +389,17 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const forceProgressScoring = () => {
-    // gameFlowManager.forceProgressScoring();
-    dispatch({ type: 'END_ROUND', payload: {} });
+    if (gameFlowManager) {
+      gameFlowManager.forceProgressScoring();
+    }
+  };
+
+  const startCountdown = (duration: number) => {
+    dispatch({ type: 'START_COUNTDOWN', payload: { duration } });
+  };
+
+  const stopCountdown = () => {
+    dispatch({ type: 'STOP_COUNTDOWN', payload: {} });
   };
 
   // Create the context value
@@ -404,6 +438,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
     forceNextRound,
     getGameFlowInfo,
     forceProgressScoring,
+    startCountdown,
+    stopCountdown,
   };
 
   return (

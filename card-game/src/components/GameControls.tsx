@@ -429,6 +429,21 @@ export const GameControls: React.FC = () => {
 
   // Card Viewing Phase Controls
   if (gameState.round.phase === GamePhase.CARD_VIEWING) {
+    const countdown = gameState.ui.startCountdown;
+    const isCountdownActive = countdown?.isActive;
+    const remainingSeconds = countdown ? Math.ceil(countdown.remainingTime / 1000) : 0;
+    
+    const handleStartPlaying = () => {
+      if (isCountdownActive) {
+        // If countdown is active, stop it and start immediately
+        actions.stopCountdown();
+        actions.makeMove({ type: 'START_PLAYING', payload: {} });
+      } else {
+        // Start 5-second countdown
+        actions.startCountdown(5000);
+      }
+    };
+
     return (
       <ViewingPanel>
         <div className="panel">
@@ -437,9 +452,12 @@ export const GameControls: React.FC = () => {
             Look at your face-up cards and remember them. They will be hidden once the game starts.
           </p>
           <StartGameButton
-            onClick={() => actions.makeMove({ type: 'START_PLAYING', payload: {} })}
+            onClick={handleStartPlaying}
           >
-            🚀 Start Playing
+            {isCountdownActive 
+              ? `🚀 Starting in ${remainingSeconds}s (Click to start now)`
+              : '🚀 Start Playing'
+            }
           </StartGameButton>
         </div>
       </ViewingPanel>

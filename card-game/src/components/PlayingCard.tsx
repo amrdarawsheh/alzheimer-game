@@ -573,7 +573,8 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
   // Determine if card should be face up
   const shouldShowCard = playerCard.isRevealed || 
     (!showAsOpponent && playerCard.isKnownToPlayer && gameState.round.phase === GamePhase.CARD_VIEWING) ||
-    (!showAsOpponent && playerCard.isKnownToPlayer && gameState.ui.showingPeekCard === playerCard.cardId)
+    (!showAsOpponent && playerCard.isKnownToPlayer && gameState.ui.showingPeekCard === playerCard.cardId) ||
+    (gameState.round.phase === GamePhase.SCORING || gameState.round.phase === GamePhase.FINISHED)
 
   // Handle card replacement
   const handleCardClick = () => {

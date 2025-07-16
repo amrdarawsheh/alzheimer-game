@@ -1,6 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 import type { Player } from '../types'
+import { GamePhase } from '../types'
 import { PlayingCard } from './PlayingCard'
 import { useGame } from '../hooks/useGame'
 
@@ -226,7 +227,14 @@ export const PlayerArea: React.FC<PlayerAreaProps> = ({
   showAsOpponent 
 }) => {
   const { gameState } = useGame()
-  const playerScore = player.score > 0 ? player.score : null
+  
+  // Show scores during SCORING phase, or for main player (non-opponent) during/after PLAYING phase
+  // Main player should always see their score after a stop is called
+  const shouldShowScore = gameState.round.phase === GamePhase.SCORING || 
+                          gameState.round.phase === GamePhase.FINISHED ||
+                          (!showAsOpponent && (gameState.round.phase === GamePhase.PLAYING || gameState.round.stopCalled))
+  
+  const playerScore = shouldShowScore ? player.score : null
   const isBotThinking = gameState.ui.isBotThinking && isCurrentPlayer && player.type === 'bot'
 
   return (
@@ -248,7 +256,11 @@ export const PlayerArea: React.FC<PlayerAreaProps> = ({
         <PlayerStats showAsOpponent={showAsOpponent}>
           {playerScore !== null && (
             <div className="score">
-              <span className="label">Score:</span>
+              <span className="label">
+                {gameState.round.phase === GamePhase.SCORING || gameState.round.phase === GamePhase.FINISHED 
+                  ? 'Final:' 
+                  : 'Points:'}
+              </span>
               <span className="value">{playerScore}</span>
             </div>
           )}

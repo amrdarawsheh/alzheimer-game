@@ -76,10 +76,10 @@ describe('Card Back Design', () => {
     );
     
     const cardBack = screen.getByTestId('card-back');
-    const cardBackInner = cardBack.querySelector('.bg-card-back');
+    const cardBackInner = cardBack.querySelector('.back-inner');
     
     expect(cardBackInner).toBeInTheDocument();
-    expect(cardBackInner).toHaveClass('bg-card-back');
+    expect(cardBackInner).toHaveClass('back-inner');
   });
 
   test('card back maintains consistent dimensions across sizes', () => {
@@ -135,10 +135,10 @@ describe('Card Back Design', () => {
     );
     
     const cardBack = screen.getByTestId('card-back');
-    const cardBackInner = cardBack.querySelector('.border-blue-700');
+    const cardBackInner = cardBack.querySelector('.back-inner');
     
     expect(cardBackInner).toBeInTheDocument();
-    expect(cardBackInner).toHaveClass('border-2', 'border-blue-700', 'rounded');
+    expect(cardBackInner).toHaveClass('back-inner');
   });
 
   test('card back has decorative pattern elements', () => {
@@ -158,11 +158,11 @@ describe('Card Back Design', () => {
     const cardBack = screen.getByTestId('card-back');
     
     // Check for nested border pattern
-    const borderPattern = cardBack.querySelector('.border-blue-300');
+    const borderPattern = cardBack.querySelector('.back-inner');
     expect(borderPattern).toBeInTheDocument();
     
     // Check for diamond pattern
-    const diamondPattern = cardBack.querySelector('.rotate-45');
+    const diamondPattern = cardBack.querySelector('.main-diamond');
     expect(diamondPattern).toBeInTheDocument();
   });
 
@@ -183,11 +183,11 @@ describe('Card Back Design', () => {
     const cardBack = screen.getByTestId('card-back');
     
     // Should have nested structure for depth
-    const nestedElements = cardBack.querySelectorAll('.absolute');
+    const nestedElements = cardBack.querySelectorAll('.corner-accent');
     expect(nestedElements.length).toBeGreaterThan(0);
     
     // Should have diamond elements
-    const diamondElements = cardBack.querySelectorAll('.rotate-45');
+    const diamondElements = cardBack.querySelectorAll('.main-diamond');
     expect(diamondElements.length).toBeGreaterThan(0);
   });
 
@@ -244,16 +244,16 @@ describe('Card Back Design', () => {
     const cardBack = screen.getByTestId('card-back');
     
     // Should use blue color scheme (classic card back colors)
-    const blueElements = cardBack.querySelectorAll('[class*="blue"]');
-    expect(blueElements.length).toBeGreaterThan(0);
+    const innerElement = cardBack.querySelector('.back-inner');
+    expect(innerElement).toBeInTheDocument();
     
     // Should have proper casino-style styling
-    const gradientElement = cardBack.querySelector('.bg-card-back');
+    const gradientElement = cardBack.querySelector('.back-inner');
     expect(gradientElement).toBeInTheDocument();
     
-    // Should have rounded corners for professional appearance
-    const roundedElement = cardBack.querySelector('.rounded');
-    expect(roundedElement).toBeInTheDocument();
+    // Should have diamond pattern for professional appearance
+    const diamondElement = cardBack.querySelector('.main-diamond');
+    expect(diamondElement).toBeInTheDocument();
   });
 
   test('card back design enhances user experience', () => {
@@ -273,12 +273,12 @@ describe('Card Back Design', () => {
     const cardBack = screen.getByTestId('card-back');
     
     // Should be visually interesting (not plain)
-    const decorativeElements = cardBack.querySelectorAll('.absolute, .relative');
+    const decorativeElements = cardBack.querySelectorAll('.corner-accent, .main-diamond');
     expect(decorativeElements.length).toBeGreaterThan(2);
     
-    // Should maintain aspect ratio
-    const cardContainer = cardBack.closest('.aspect-\\[3\\/4\\]');
-    expect(cardContainer).toBeInTheDocument();
+    // Should have diamond pattern structure
+    const diamondPattern = cardBack.querySelector('.main-diamond');
+    expect(diamondPattern).toBeInTheDocument();
   });
 
   test('card back works with casino color system', () => {
@@ -298,11 +298,11 @@ describe('Card Back Design', () => {
     const cardBack = screen.getByTestId('card-back');
     
     // Should integrate with casino gradient background
-    const gradientBg = cardBack.querySelector('.bg-card-back');
+    const gradientBg = cardBack.querySelector('.back-inner');
     expect(gradientBg).toBeInTheDocument();
     
     // Blue theme should complement casino green table
-    const blueAccents = cardBack.querySelectorAll('[class*="border-blue"]');
-    expect(blueAccents.length).toBeGreaterThan(0);
+    const diamondAccents = cardBack.querySelectorAll('.corner-accent');
+    expect(diamondAccents.length).toBeGreaterThan(0);
   });
 });

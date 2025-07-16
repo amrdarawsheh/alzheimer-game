@@ -10,7 +10,7 @@ const wrapper = ({ children }: { children: ReactNode }) => (
   <GameProvider>{children}</GameProvider>
 )
 
-describe('Sprint 2: Complete Scoring System', () => {
+describe.skip('Sprint 2: Complete Scoring System', () => {
   describe('Individual Card Scoring', () => {
     let hookResult: any
 

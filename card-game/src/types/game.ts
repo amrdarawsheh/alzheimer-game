@@ -114,6 +114,12 @@ export interface UIState {
     duration: number; // timer duration in milliseconds
     remainingTime: number; // remaining time in milliseconds
   } | null;
+  startCountdown: {
+    isActive: boolean;
+    startTime: number;
+    duration: number; // countdown duration in milliseconds
+    remainingTime: number; // remaining time in milliseconds
+  } | null;
 }
 
 export const ModalType = {
