@@ -67,6 +67,7 @@ export const ANIMATION_DURATIONS = {
   CARD_MOVE: 300,
   CARD_FADE: 200,
   CARD_HIGHLIGHT: 500,
+  CARD_REPLACEMENT: 600, // Card swap animation (300ms out + 300ms in)
   TURN_CHANGE: 500,
   SCORE_UPDATE: 800,
   MODAL_OPEN: 250,

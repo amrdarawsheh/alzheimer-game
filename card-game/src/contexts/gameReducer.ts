@@ -69,6 +69,8 @@ export const initialGameState: GameState = {
     currentModal: null,
     isBotThinking: false,
     botThinkingStartTime: null,
+    replacingCard: null,
+    jackSwapMode: null,
     turnTimer: null,
     startCountdown: null,
   },
@@ -150,6 +152,17 @@ export const gameReducer = (
     }
 
     case 'START_ROUND': {
+      // Don't start a new round if match is already won
+      if (state.match.winner) {
+        return {
+          ...state,
+          round: {
+            ...state.round,
+            phase: GamePhase.FINISHED,
+          },
+        };
+      }
+      
       // Create and shuffle a new deck
       const allCards = createDeck();
       const cardIds = shuffleDeck(allCards);
@@ -318,7 +331,12 @@ export const gameReducer = (
         ui: {
           ...state.ui,
           selectedCard: drawnCardId, // Store drawn card for replacement decision
-          currentModal: (hasSpecial && !isBot) ? 'special-ability' : null, // Show special ability modal only for humans
+          currentModal: (hasSpecial && !isBot && drawnCard.rank !== 'jack') ? 'special-ability' : null, // Show modal only for non-Jack special cards
+          jackSwapMode: (hasSpecial && !isBot && drawnCard.rank === 'jack') ? {
+            isActive: true,
+            selectedOwnCardIndex: null,
+            drawnCardId: drawnCardId,
+          } : state.ui.jackSwapMode,
         },
         lastAction: {
           type: action.type,
@@ -411,6 +429,10 @@ export const gameReducer = (
           selectedCard: null,
           currentModal: (hasAbility && !isBot) ? drawnCard.rank : null,
           isActionInProgress: true, // Prevent multiple rapid actions
+          replacingCard: state.ui.replacingCard ? {
+            ...state.ui.replacingCard,
+            phase: 'swapping-in', // Change to swapping-in phase since card has been replaced
+          } : null,
         },
         lastAction: {
           type: action.type,
@@ -878,6 +900,161 @@ export const gameReducer = (
         ui: {
           ...state.ui,
           startCountdown: null,
+        },
+      };
+    }
+
+    // Card Replacement Animation Actions
+    case 'START_CARD_REPLACEMENT': {
+      return {
+        ...state,
+        ui: {
+          ...state.ui,
+          replacingCard: {
+            playerId: action.payload.playerId,
+            cardIndex: action.payload.cardIndex,
+            phase: 'swapping-out',
+          },
+        },
+        lastAction: {
+          type: action.type,
+          playerId: action.payload.playerId,
+          details: action.payload,
+          timestamp: Date.now(),
+        },
+      };
+    }
+
+    case 'COMPLETE_CARD_REPLACEMENT': {
+      return {
+        ...state,
+        ui: {
+          ...state.ui,
+          replacingCard: null,
+        },
+        lastAction: {
+          type: action.type,
+          playerId: 'system',
+          details: {},
+          timestamp: Date.now(),
+        },
+      };
+    }
+
+    // Jack Swap Mode Actions
+    case 'START_JACK_SWAP_MODE': {
+      return {
+        ...state,
+        ui: {
+          ...state.ui,
+          jackSwapMode: {
+            isActive: true,
+            selectedOwnCardIndex: null,
+            drawnCardId: action.payload.drawnCardId,
+          },
+          currentModal: null, // Close any existing modal
+        },
+        lastAction: {
+          type: action.type,
+          playerId: 'system',
+          details: action.payload,
+          timestamp: Date.now(),
+        },
+      };
+    }
+
+    case 'SELECT_OWN_CARD_FOR_SWAP': {
+      return {
+        ...state,
+        ui: {
+          ...state.ui,
+          jackSwapMode: state.ui.jackSwapMode ? {
+            ...state.ui.jackSwapMode,
+            selectedOwnCardIndex: action.payload.cardIndex,
+          } : null,
+        },
+        lastAction: {
+          type: action.type,
+          playerId: 'system',
+          details: action.payload,
+          timestamp: Date.now(),
+        },
+      };
+    }
+
+    case 'COMPLETE_JACK_SWAP': {
+      const { targetPlayerId, targetCardIndex } = action.payload;
+      const jackSwapMode = state.ui.jackSwapMode;
+      
+      if (!jackSwapMode || jackSwapMode.selectedOwnCardIndex === null) {
+        return state;
+      }
+
+      const currentPlayer = state.players.find(p => p.id === state.players[state.round.currentPlayerIndex].id);
+      if (!currentPlayer) return state;
+
+      // Perform the swap using the existing swap logic
+      const updatedPlayers = swapPlayerCards(
+        state.players,
+        currentPlayer.id,
+        jackSwapMode.selectedOwnCardIndex,
+        targetPlayerId,
+        targetCardIndex
+      );
+
+      // Discard the Jack card
+      const newDiscardPile = addToDiscardPile(state.deck.discardPile, jackSwapMode.drawnCardId);
+
+      return {
+        ...state,
+        players: updatedPlayers,
+        deck: {
+          ...state.deck,
+          discardPile: newDiscardPile,
+        },
+        ui: {
+          ...state.ui,
+          selectedCard: null,
+          jackSwapMode: null, // Clear swap mode
+        },
+        lastAction: {
+          type: action.type,
+          playerId: currentPlayer.id,
+          details: { 
+            playerCardIndex: jackSwapMode.selectedOwnCardIndex, 
+            targetPlayerId, 
+            targetCardIndex,
+            discardedCardId: jackSwapMode.drawnCardId,
+          },
+          timestamp: Date.now(),
+        },
+      };
+    }
+
+    case 'CANCEL_JACK_SWAP': {
+      const jackSwapMode = state.ui.jackSwapMode;
+      
+      // Discard the Jack card when cancelling
+      const newDiscardPile = jackSwapMode 
+        ? addToDiscardPile(state.deck.discardPile, jackSwapMode.drawnCardId)
+        : state.deck.discardPile;
+
+      return {
+        ...state,
+        deck: {
+          ...state.deck,
+          discardPile: newDiscardPile,
+        },
+        ui: {
+          ...state.ui,
+          selectedCard: null,
+          jackSwapMode: null,
+        },
+        lastAction: {
+          type: action.type,
+          playerId: 'system',
+          details: { discardedCardId: jackSwapMode?.drawnCardId },
+          timestamp: Date.now(),
         },
       };
     }

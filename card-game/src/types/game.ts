@@ -108,6 +108,16 @@ export interface UIState {
   currentModal: string | null; // Will be properly typed as ModalType in Task 1.5
   isBotThinking: boolean; // Whether bot is currently thinking
   botThinkingStartTime: number | null; // When bot started thinking
+  replacingCard: {
+    playerId: string;
+    cardIndex: number;
+    phase: 'swapping-out' | 'swapping-in' | null;
+  } | null; // Tracks card replacement animation state
+  jackSwapMode: {
+    isActive: boolean;
+    selectedOwnCardIndex: number | null;
+    drawnCardId: string; // The Jack card that enables this swap
+  } | null; // Tracks Jack swap card selection state
   turnTimer: {
     isActive: boolean;
     startTime: number;

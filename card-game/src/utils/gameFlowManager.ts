@@ -148,16 +148,26 @@ export class GameFlowManager {
 
       case 'replace_card':
         if (botMove.cardIndex !== undefined && this.gameState.ui.selectedCard) {
+          // Start the replacement animation first
           this.dispatch({
-            type: 'REPLACE_CARD',
-            payload: {
-              playerId: currentPlayer.id,
-              cardIndex: botMove.cardIndex,
-              drawnCardId: this.gameState.ui.selectedCard,
-            },
+            type: 'START_CARD_REPLACEMENT',
+            payload: { playerId: currentPlayer.id, cardIndex: botMove.cardIndex }
           });
-          // End turn after replacement
-          setTimeout(() => this.endTurn(), 500);
+          
+          // Then after the swap-out animation, do the actual replacement
+          setTimeout(() => {
+            this.dispatch({
+              type: 'REPLACE_CARD',
+              payload: {
+                playerId: currentPlayer.id,
+                cardIndex: botMove.cardIndex,
+                drawnCardId: this.gameState.ui.selectedCard,
+              },
+            });
+          }, 400); // Wait for swap-out animation to complete (0.4s)
+          
+          // End turn after replacement animation completes
+          setTimeout(() => this.endTurn(), 1000); // Total animation time: 400ms + 400ms = 800ms
         }
         break;
 

@@ -457,8 +457,12 @@ export const GameStatus: React.FC = () => {
         {/* Stop Called Indicator */}
         {gameState.round.stopCalled && (
           <StopCallAlert>
-            <StopTitle>STOP CALLED!</StopTitle>
+            <StopTitle>🛑 STOP CALLED! 🛑</StopTitle>
             <StopDetails>
+              {gameState.round.stopCalledBy && (() => {
+                const stopCaller = gameState.players.find(p => p.id === gameState.round.stopCalledBy);
+                return stopCaller ? `${stopCaller.name} called stop • ` : '';
+              })()}
               {gameState.round.remainingTurns} turn{gameState.round.remainingTurns !== 1 ? 's' : ''} remaining
             </StopDetails>
           </StopCallAlert>

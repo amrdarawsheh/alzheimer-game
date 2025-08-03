@@ -92,19 +92,6 @@ export interface SwapModalProps {
   otherPlayers: Player[];
 }
 
-export interface ScoreModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  roundNumber: number;
-  players: Array<{
-    id: string;
-    name: string;
-    cards: Card[];
-    score: number;
-    isWinner: boolean;
-  }>;
-  onContinue: () => void;
-}
 
 export interface GameEndModalProps {
   isOpen: boolean;

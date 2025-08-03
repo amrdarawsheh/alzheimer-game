@@ -1,0 +1,37 @@
+/* Card replacement animations - Professional Casino Style */
+@keyframes cardSwapOut {
+  0% {
+    transform: perspective(1000px) translateY(0) rotateY(0deg) scale(1);
+    opacity: 1;
+    z-index: 100;
+  }
+  100% {
+    transform: perspective(1000px) translateY(-40px) rotateY(-90deg) scale(0.8);
+    opacity: 0;
+    z-index: 100;
+  }
+}
+
+@keyframes cardSwapIn {
+  0% {
+    transform: perspective(1000px) translateY(-40px) rotateY(90deg) scale(0.8);
+    opacity: 0;
+    z-index: 100;
+  }
+  100% {
+    transform: perspective(1000px) translateY(0) rotateY(0deg) scale(1);
+    opacity: 1;
+    z-index: 100;
+  }
+}
+
+/* Professional animation classes */
+.card-swapping-out {
+  animation: cardSwapOut 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+  z-index: 100 !important;
+}
+
+.card-swapping-in {
+  animation: cardSwapIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+  z-index: 100 !important;
+}

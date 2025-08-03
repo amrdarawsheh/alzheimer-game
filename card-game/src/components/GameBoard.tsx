@@ -9,7 +9,6 @@ import { GameStatus } from './GameStatus'
 import { DrawnCard } from './DrawnCard'
 import { SpecialAbilityModal } from './SpecialAbilityModal'
 import { PeekResultModal } from './PeekResultModal'
-import { ScoreModal } from './ScoreModal'
 
 // Styled Components with vibrant colors
 const VibrantBackground = styled.div`
@@ -271,7 +270,6 @@ export const GameBoard: React.FC = () => {
   const showSpecialAbility = drawnCard?.isSpecial && gameState.ui.currentModal === 'special-ability'
   const showPeekResult = gameState.ui.currentModal === 'peek-result' && gameState.ui.showingPeekCard
   const peekCard = showPeekResult ? actions.getCardById(gameState.ui.showingPeekCard!) : null
-  const showScoreModal = gameState.round.phase === GamePhase.SCORING
   
   const handleUseSpecialAbility = (params: any) => {
     if (!drawnCard) return
@@ -398,12 +396,6 @@ export const GameBoard: React.FC = () => {
         />
       )}
 
-      {/* Score Modal */}
-      {showScoreModal && (
-        <ScoreModal
-          onContinue={() => actions.forceProgressScoring()}
-        />
-      )}
 
 
       </GameContainer>

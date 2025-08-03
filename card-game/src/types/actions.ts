@@ -63,6 +63,12 @@ export type GameAction =
     }
   | { type: 'COMPLETE_ANIMATION'; payload: { animationId: string } }
   | { type: 'SET_ACTION_IN_PROGRESS'; payload: { inProgress: boolean } }
+  | { type: 'START_CARD_REPLACEMENT'; payload: { playerId: string; cardIndex: number } }
+  | { type: 'COMPLETE_CARD_REPLACEMENT'; payload: Record<string, never> }
+  | { type: 'START_JACK_SWAP_MODE'; payload: { drawnCardId: string } }
+  | { type: 'SELECT_OWN_CARD_FOR_SWAP'; payload: { cardIndex: number } }
+  | { type: 'COMPLETE_JACK_SWAP'; payload: { targetPlayerId: string; targetCardIndex: number } }
+  | { type: 'CANCEL_JACK_SWAP'; payload: Record<string, never> }
 
   // Bot Actions
   | { type: 'BOT_MAKE_MOVE'; payload: { playerId: string; move: BotMove } }

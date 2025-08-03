@@ -21,6 +21,8 @@ const CardContainer = styled.div<{
   isRevealed: boolean;
   isKnownToPlayer: boolean;
   showAsOpponent: boolean;
+  isReplacing: boolean;
+  replacementPhase: 'swapping-out' | 'swapping-in' | null;
 }>`
   position: relative;
   aspect-ratio: 3/4;
@@ -68,6 +70,8 @@ const CardContainer = styled.div<{
       }
     }
   `}
+  
+  /* Card replacement animations handled by global CSS */
   
   /* Pulse animation for available actions */
   ${props => props.isClickable && `
@@ -562,6 +566,7 @@ const CardPositionIndicator = styled.div<{ position: number }>`
 export const PlayingCard: React.FC<PlayingCardProps> = ({
   playerCard,
   cardIndex,
+  playerId,
   showAsOpponent,
   isCurrentPlayer,
   isHumanPlayer
@@ -570,21 +575,84 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
   const card = actions.getCardById(playerCard.cardId)
   const drawnCard = gameState.ui.selectedCard
 
+  // Check if this card is being replaced
+  const replacingCard = gameState.ui.replacingCard
+  const isReplacing = replacingCard && 
+    replacingCard.cardIndex === cardIndex &&
+    replacingCard.playerId === playerId // Check by player ID from props
+  const replacementPhase = isReplacing ? replacingCard.phase : null
+
+  // Debug logging
+  React.useEffect(() => {
+    if (isReplacing) {
+      console.log(`Card ${cardIndex} is replacing! Phase: ${replacementPhase}`, {
+        cardIndex,
+        replacingCard,
+        isReplacing,
+        replacementPhase,
+        playerId
+      })
+    }
+  }, [isReplacing, replacementPhase, cardIndex])
+
+  // Get Jack swap mode state
+  const jackSwapMode = gameState.ui.jackSwapMode;
+
+
+  // Handle animation completion
+  React.useEffect(() => {
+    if (isReplacing && replacementPhase === 'swapping-in') {
+      // Complete the replacement animation after the duration
+      const timer = setTimeout(() => {
+        actions.makeMove({ type: 'COMPLETE_CARD_REPLACEMENT', payload: {} })
+      }, 400) // Animation duration (0.4s)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [isReplacing, replacementPhase, actions])
+
   // Determine if card should be face up
   const shouldShowCard = playerCard.isRevealed || 
     (!showAsOpponent && playerCard.isKnownToPlayer && gameState.round.phase === GamePhase.CARD_VIEWING) ||
     (!showAsOpponent && playerCard.isKnownToPlayer && gameState.ui.showingPeekCard === playerCard.cardId) ||
     (gameState.round.phase === GamePhase.SCORING || gameState.round.phase === GamePhase.FINISHED)
 
-  // Handle card replacement
+  // Handle card clicks (replacement or Jack swap)
   const handleCardClick = () => {
-    if (drawnCard && isCurrentPlayer && isHumanPlayer) {
-      actions.replaceCard(cardIndex)
+    
+    if (jackSwapMode?.isActive && isHumanPlayer) {
+      // Jack swap mode logic
+      if (!showAsOpponent && isCurrentPlayer) {
+        // Clicking on own card - select it for swapping
+        actions.makeMove({ 
+          type: 'SELECT_OWN_CARD_FOR_SWAP', 
+          payload: { cardIndex } 
+        });
+      } else if (showAsOpponent && jackSwapMode.selectedOwnCardIndex !== null) {
+        // Clicking on opponent's card - complete the swap
+        actions.makeMove({ 
+          type: 'COMPLETE_JACK_SWAP', 
+          payload: { 
+            targetPlayerId: playerId, 
+            targetCardIndex: cardIndex 
+          } 
+        });
+      }
+    } else if (drawnCard && isCurrentPlayer && isHumanPlayer) {
+      // Normal card replacement
+      actions.replaceCard(cardIndex);
     }
   }
 
-  // Determine if card is clickable for replacement
-  const isClickable = drawnCard && isCurrentPlayer && isHumanPlayer
+  // Determine if card is clickable
+  const isClickable = 
+    // Normal replacement
+    (drawnCard && isCurrentPlayer && isHumanPlayer) ||
+    // Jack swap mode - own cards are clickable
+    (jackSwapMode?.isActive && !showAsOpponent && isCurrentPlayer && isHumanPlayer) ||
+    // Jack swap mode - opponent cards are clickable if own card is selected (current player must be human)
+    (jackSwapMode?.isActive && showAsOpponent && jackSwapMode.selectedOwnCardIndex !== null && 
+     gameState.players[gameState.round.currentPlayerIndex]?.type === 'human')
 
   // Get card color based on suit
   const getCardColor = () => {
@@ -668,7 +736,20 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
       isRevealed={Boolean(playerCard.isRevealed)}
       isKnownToPlayer={Boolean(playerCard.isKnownToPlayer)}
       showAsOpponent={showAsOpponent}
+      isReplacing={Boolean(isReplacing)}
+      replacementPhase={replacementPhase}
       onClick={handleCardClick}
+      className={`
+        ${isReplacing && replacementPhase === 'swapping-out' ? 'card-swapping-out' : ''}
+        ${isReplacing && replacementPhase === 'swapping-in' ? 'card-swapping-in' : ''}
+      `.trim()}
+      style={{
+        animation: isReplacing && replacementPhase === 'swapping-out' 
+          ? 'cardSwapOut 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards' 
+          : isReplacing && replacementPhase === 'swapping-in'
+          ? 'cardSwapIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards'
+          : undefined
+      }}
     >
       
       {/* Card Face */}
@@ -737,11 +818,18 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
       )}
 
 
-      {/* Enhanced Replacement Indicator */}
+      {/* Enhanced Replacement/Swap Indicator */}
       {isClickable && (
         <ReplacementOverlay onClick={handleCardClick}>
           <div className="replace-text">
-            Click to Replace
+            {jackSwapMode?.isActive
+              ? !showAsOpponent && isCurrentPlayer
+                ? jackSwapMode.selectedOwnCardIndex === cardIndex
+                  ? "Selected for Swap"
+                  : "Click to Select"
+                : "Click to Swap"
+              : "Click to Replace"
+            }
           </div>
         </ReplacementOverlay>
       )}

@@ -104,6 +104,21 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, [gameState.ui.startCountdown?.isActive, gameState.ui.startCountdown?.startTime]);
 
+  // Auto-start countdown when entering CARD_VIEWING phase
+  useEffect(() => {
+    if (gameState.round.phase === GamePhase.CARD_VIEWING && !gameState.ui.startCountdown?.isActive) {
+      // Automatically start 5-second countdown
+      const timer = setTimeout(() => {
+        dispatch({
+          type: 'START_COUNTDOWN',
+          payload: { duration: 5000 },
+        });
+      }, 100); // Small delay to ensure state is settled
+      
+      return () => clearTimeout(timer);
+    }
+  }, [gameState.round.phase, gameState.ui.startCountdown?.isActive]);
+
   // Game control functions
   const startGame = (playerCount: number, playerNames: string[]) => {
     dispatch({
@@ -178,14 +193,23 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
     const currentPlayer = getCurrentPlayer();
     const drawnCardId = gameState.ui.selectedCard;
     if (currentPlayer && drawnCardId) {
+      // Start the replacement animation first
       dispatch({
-        type: 'REPLACE_CARD',
-        payload: {
-          playerId: currentPlayer.id,
-          cardIndex,
-          drawnCardId,
-        },
+        type: 'START_CARD_REPLACEMENT',
+        payload: { playerId: currentPlayer.id, cardIndex }
       });
+      
+      // Then after the swap-out animation, do the actual replacement
+      setTimeout(() => {
+        dispatch({
+          type: 'REPLACE_CARD',
+          payload: {
+            playerId: currentPlayer.id,
+            cardIndex,
+            drawnCardId,
+          },
+        });
+      }, 400); // Wait for swap-out animation to complete (0.4s)
       
       // Start 5-second timer for human players only
       if (currentPlayer.type === 'human') {

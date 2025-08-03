@@ -294,6 +294,108 @@ const ActionButton = styled.button<{ variant: 'discard' | 'stop' | 'dev' }>`
   }
 `
 
+const ScoringPanel = styled.div`
+  text-align: center;
+  
+  .panel {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 24px;
+    backdrop-filter: blur(8px);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 16px;
+  }
+  
+  .title {
+    color: white;
+    font-weight: bold;
+    font-size: 22px;
+    margin-bottom: 16px;
+  }
+  
+  .winner {
+    color: #FEF08A;
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 16px;
+    
+    .score {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.9);
+      margin-top: 4px;
+    }
+  }
+  
+  .scores {
+    color: white;
+    margin-bottom: 16px;
+    
+    .scores-title {
+      font-weight: bold;
+      font-size: 16px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+      padding-bottom: 8px;
+    }
+    
+    .player-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      margin-bottom: 8px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      
+      &.winner {
+        background: rgba(254, 240, 138, 0.2);
+        border: 1px solid rgba(254, 240, 138, 0.5);
+      }
+      
+      .rank {
+        font-weight: bold;
+        margin-right: 12px;
+      }
+      
+      .name {
+        flex: 1;
+        text-align: left;
+        
+        .bot-label {
+          font-size: 10px;
+          background: rgba(59, 130, 246, 0.8);
+          color: white;
+          padding: 2px 6px;
+          border-radius: 4px;
+          margin-left: 8px;
+        }
+      }
+      
+      .score {
+        font-weight: bold;
+      }
+    }
+  }
+  
+  .progress {
+    color: white;
+    
+    .progress-title {
+      font-weight: bold;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    
+    .progress-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+  }
+`
+
 const ViewingPanel = styled.div`
   text-align: center;
   
@@ -456,7 +558,7 @@ export const GameControls: React.FC = () => {
           >
             {isCountdownActive 
               ? `🚀 Starting in ${remainingSeconds}s (Click to start now)`
-              : '🚀 Start Playing'
+              : '🚀 Game starting automatically...'
             }
           </StartGameButton>
         </div>
@@ -476,6 +578,16 @@ export const GameControls: React.FC = () => {
             onClick={() => actions.discardDrawnCard()}
           >
             🗑️ Discard Card
+          </ActionButton>
+        )}
+
+        {/* Cancel Jack Swap Button */}
+        {gameState.ui.jackSwapMode?.isActive && isHumanTurn && (
+          <ActionButton
+            variant="secondary"
+            onClick={() => actions.makeMove({ type: 'CANCEL_JACK_SWAP', payload: {} })}
+          >
+            ✖️ Cancel Swap
           </ActionButton>
         )}
 
@@ -520,9 +632,84 @@ export const GameControls: React.FC = () => {
     )
   }
 
-  // Scoring Phase Controls - handled by ScoreModal now
+  // Scoring Phase Controls
   if (gameState.round.phase === GamePhase.SCORING) {
-    return null // ScoreModal will handle this
+    // Calculate round results
+    const playersWithScores = gameState.players.map(player => ({
+      ...player,
+      roundScore: player.score
+    })).sort((a, b) => a.roundScore - b.roundScore)
+    
+    const roundWinner = playersWithScores[0]
+    const isMatchComplete = gameState.match.winner !== null
+    const matchWinner = isMatchComplete 
+      ? gameState.players.find(p => p.id === gameState.match.winner)
+      : null
+
+    return (
+      <ScoringPanel>
+        
+        {/* Round Results */}
+        <div className="panel">
+          <h2 className="title">
+            {isMatchComplete ? '🎉 Match Complete! 🎉' : `Round ${gameState.match.currentRound} Results`}
+          </h2>
+          
+          {/* Round Winner */}
+          {!isMatchComplete && (
+            <div className="winner">
+              👑 {roundWinner.name} wins Round {gameState.match.currentRound}!
+              <div className="score">With {roundWinner.roundScore} points</div>
+            </div>
+          )}
+
+          {/* Match Winner */}
+          {isMatchComplete && matchWinner && (
+            <div className="winner">
+              {matchWinner.name} wins the match!
+            </div>
+          )}
+
+          {/* Player Scores */}
+          <div className="scores">
+            <h4 className="scores-title">{isMatchComplete ? 'Final Standings' : 'Round Scores'}</h4>
+            {playersWithScores.map((player, index) => (
+              <div key={player.id} className={`player-row ${index === 0 && !isMatchComplete ? 'winner' : ''}`}>
+                <span className="rank">{index + 1}.</span>
+                <span className="name">
+                  {player.name}
+                  {player.type === 'bot' && <span className="bot-label">BOT</span>}
+                </span>
+                <span className="score">
+                  {isMatchComplete ? `${player.roundWins} wins` : `${player.roundScore} pts`}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Match Progress */}
+          {!isMatchComplete && (
+            <div className="progress">
+              <h4 className="progress-title">Match Progress</h4>
+              {gameState.players.map(player => (
+                <div key={player.id} className="progress-row">
+                  <span>{player.name}</span>
+                  <span>{player.roundWins}/{gameState.match.roundsToWin}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Continue Button */}
+        <StartGameButton
+          onClick={() => actions.forceProgressScoring()}
+        >
+          {isMatchComplete ? '🔄 New Game' : '▶️ Continue to Next Round'}
+        </StartGameButton>
+
+      </ScoringPanel>
+    )
   }
 
   // Finished Phase Controls
