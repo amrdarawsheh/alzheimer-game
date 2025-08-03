@@ -255,7 +255,7 @@ Error generating stack: `+a.message+`
     box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
   `}
 `,ym=D.div`
-  padding: 8px;
+  padding: 0px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -370,7 +370,7 @@ Error generating stack: `+a.message+`
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
+  padding: 0px;
   
   .back-inner {
     width: 100%;
@@ -507,7 +507,7 @@ Error generating stack: `+a.message+`
     color: white;
     font-size: 14px;
     font-weight: bold;
-    padding: 8px 12px;
+    padding: 0px 12px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     border: 2px solid #FF6B00;
