@@ -646,13 +646,16 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
 
   // Determine if card is clickable
   const isClickable = 
-    // Normal replacement
-    (drawnCard && isCurrentPlayer && isHumanPlayer) ||
-    // Jack swap mode - own cards are clickable
-    (jackSwapMode?.isActive && !showAsOpponent && isCurrentPlayer && isHumanPlayer) ||
-    // Jack swap mode - opponent cards are clickable if own card is selected (current player must be human)
-    (jackSwapMode?.isActive && showAsOpponent && jackSwapMode.selectedOwnCardIndex !== null && 
-     gameState.players[gameState.round.currentPlayerIndex]?.type === 'human')
+    // Don't allow clicks if action is in progress (during countdown after card replacement)
+    !gameState.ui.isActionInProgress && (
+      // Normal replacement
+      (drawnCard && isCurrentPlayer && isHumanPlayer) ||
+      // Jack swap mode - own cards are clickable
+      (jackSwapMode?.isActive && !showAsOpponent && isCurrentPlayer && isHumanPlayer) ||
+      // Jack swap mode - opponent cards are clickable if own card is selected (current player must be human)
+      (jackSwapMode?.isActive && showAsOpponent && jackSwapMode.selectedOwnCardIndex !== null && 
+       gameState.players[gameState.round.currentPlayerIndex]?.type === 'human')
+    )
 
   // Get card color based on suit
   const getCardColor = () => {
