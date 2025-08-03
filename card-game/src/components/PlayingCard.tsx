@@ -35,7 +35,7 @@ const CardContainer = styled.div<{
     return '#1E40AF'; // Default blue for unknown cards
   }};
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
+  cursor: ${props => props.isClickable ? 'pointer' : 'default'};
   transform: perspective(1000px) rotateY(0deg);
   background: ${props => props.shouldShowCard ? 'white' : 'linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)'};
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2), 0 3px 8px rgba(0, 0, 0, 0.1);
