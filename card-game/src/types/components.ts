@@ -1,6 +1,6 @@
 // Component prop type definitions
 
-import type { Player, Card, GamePhase } from './game';
+import type { Player, GamePhase } from './game';
 
 export interface CardProps {
   cardId: string;

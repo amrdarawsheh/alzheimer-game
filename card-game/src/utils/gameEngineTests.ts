@@ -65,6 +65,8 @@ export const createMockGameState = (): GameState => {
       currentModal: null,
       isBotThinking: false,
       botThinkingStartTime: null,
+      replacingCard: null,
+      jackSwapMode: null,
       turnTimer: null,
       startCountdown: null,
     },

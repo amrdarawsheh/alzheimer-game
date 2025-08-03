@@ -584,7 +584,7 @@ export const GameControls: React.FC = () => {
         {/* Cancel Jack Swap Button */}
         {gameState.ui.jackSwapMode?.isActive && isHumanTurn && (
           <ActionButton
-            variant="secondary"
+            variant="stop"
             onClick={() => actions.makeMove({ type: 'CANCEL_JACK_SWAP', payload: {} })}
           >
             ✖️ Cancel Swap

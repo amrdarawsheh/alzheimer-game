@@ -148,10 +148,13 @@ export class GameFlowManager {
 
       case 'replace_card':
         if (botMove.cardIndex !== undefined && this.gameState.ui.selectedCard) {
+          const cardIndex = botMove.cardIndex;
+          const drawnCardId = this.gameState.ui.selectedCard;
+          
           // Start the replacement animation first
           this.dispatch({
             type: 'START_CARD_REPLACEMENT',
-            payload: { playerId: currentPlayer.id, cardIndex: botMove.cardIndex }
+            payload: { playerId: currentPlayer.id, cardIndex }
           });
           
           // Then after the swap-out animation, do the actual replacement
@@ -160,8 +163,8 @@ export class GameFlowManager {
               type: 'REPLACE_CARD',
               payload: {
                 playerId: currentPlayer.id,
-                cardIndex: botMove.cardIndex,
-                drawnCardId: this.gameState.ui.selectedCard,
+                cardIndex,
+                drawnCardId,
               },
             });
           }, 400); // Wait for swap-out animation to complete (0.4s)
